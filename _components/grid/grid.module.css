@@ -1,0 +1,87 @@
+.gridContainer {
+  width: 100%;
+  max-height: calc(100vh - 160px);
+  overflow: auto;
+  border: 1px solid #e2e8f0;
+  border-radius: 6px;
+  font-family: Arial, Helvetica, sans-serif;
+}
+
+.cell {
+  flex: 1;
+  min-width: 200px;
+  padding: 10px 12px;
+  font-size: 14px;
+  box-sizing: border-box;
+  border-right: 1px solid #e2e8f0;
+  border-bottom: 1px solid #e2e8f0;
+}
+
+.cell:last-child {
+  border-right: none;
+}
+
+.headerRow {
+  display: flex;
+  position: sticky;
+  top: 0;
+  z-index: 1;
+  background: #f8fafc;
+}
+
+.headerCell {
+  composes: cell;
+  display: flex;
+  align-items: center;
+  height: 47px;
+  font-weight: 700;
+  font-size: 13px;
+  color: #1e293b;
+  background: #f8fafc;
+  white-space: nowrap;
+  user-select: none;
+}
+
+.bodyRow {
+  display: flex;
+}
+
+.bodyRow:nth-child(even) .bodyCell {
+  background: #f8fafc;
+}
+
+.bodyRow:last-child .bodyCell {
+  border-bottom: none;
+}
+
+.bodyCell {
+  composes: cell;
+  height: 42px;
+  display: flex;
+  align-items: center;
+  background: #ffffff;
+  color: #334155;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.emptyState {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 40px 24px;
+  width: 100%;
+}
+
+.noData {
+  font-size: 14px;
+  color: #64748b;
+}
+
+.bodyCellFocused {
+  background: #eff6ff;
+  outline: 2px solid #3b82f6;
+  outline-offset: -2px;
+  color: #1e40af;
+}
