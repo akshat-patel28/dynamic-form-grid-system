@@ -1,7 +1,7 @@
 export type PageRouteMap = {
   HOME: "/";
   DYNAMIC_GRID: "/dynamic-grid";
-  DINAMIC_FORM: "/dinamic-form";
+  DYNAMIC_FORM: "/dynamic-form";
 };
 
 export type PageRoute = PageRouteMap[keyof PageRouteMap];
