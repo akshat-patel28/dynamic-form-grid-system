@@ -127,6 +127,7 @@ const GridBody = <TData extends Record<string, unknown>>({
               styles.bodyCell,
               isFocused ? styles.bodyCellFocused : '',
               col.cellClass ?? '',
+              col.bodyCellClassName ?? '',
             ]
               .filter(Boolean)
               .join(' ');
@@ -135,7 +136,11 @@ const GridBody = <TData extends Record<string, unknown>>({
               <div
                 key={col.field}
                 className={cellClass}
-                style={{ maxWidth: col.maxWidth }}
+                style={
+                  col.maxWidth
+                    ? { maxWidth: col.maxWidth, minWidth: col.maxWidth }
+                    : undefined
+                }
                 role="cell"
                 title={displayValue}
                 tabIndex={0}

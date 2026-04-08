@@ -48,8 +48,12 @@ const GridHeader = <TData extends Record<string, unknown> = Record<string, unkno
       {columnDefs.map((col) => (
         <div
           key={col.field}
-          className={styles.headerCell}
-          style={{ maxWidth: col.maxWidth }}
+          className={[styles.headerCell, col.headerCellClassName].filter(Boolean).join(' ')}
+          style={
+            col.maxWidth
+              ? { maxWidth: col.maxWidth, minWidth: col.maxWidth }
+              : undefined
+          }
           role="columnheader"
         >
           {col.headerName ?? col.field}

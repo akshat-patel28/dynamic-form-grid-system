@@ -49,6 +49,24 @@ export interface ColumnDef<
   cellClass?: string;
 
   /**
+   * One or more CSS class names applied to the header cell of this column.
+   * Use to customise header alignment, colour, or typography per column.
+   *
+   * @example
+   * headerCellClassName: 'text-right font-mono'
+   */
+  headerCellClassName?: string;
+
+  /**
+   * One or more CSS class names applied to every body cell in this column.
+   * Use for per-column data styling such as alignment or colour.
+   *
+   * @example
+   * bodyCellClassName: 'text-right text-green-600'
+   */
+  bodyCellClassName?: string;
+
+  /**
    * Maximum width of the column (header and data cells).
    * Accepts any valid CSS width value, e.g. `'100px'` or `'10rem'`.
    * When omitted the column grows freely with `flex: 1`.
