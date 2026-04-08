@@ -85,3 +85,14 @@
   outline-offset: -2px;
   color: #1e40af;
 }
+
+.bodyRowSelected .bodyCell {
+  background: #bdd9ff !important;
+}
+
+.checkboxCell {
+  flex: none;
+  min-width: 48px;
+  max-width: 48px;
+  justify-content: center;
+}
