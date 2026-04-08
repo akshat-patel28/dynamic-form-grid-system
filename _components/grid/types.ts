@@ -67,6 +67,18 @@ export interface ColumnDef<
   bodyCellClassName?: string;
 
   /**
+   * Preferred width of the column (header and data cells).
+   * Accepts any valid CSS width value, e.g. `'100px'` or `'10rem'`.
+   */
+  width?: string;
+
+  /**
+   * Minimum width of the column (header and data cells).
+   * Accepts any valid CSS width value, e.g. `'100px'` or `'10rem'`.
+   */
+  minWidth?: string;
+
+  /**
    * Maximum width of the column (header and data cells).
    * Accepts any valid CSS width value, e.g. `'100px'` or `'10rem'`.
    * When omitted the column grows freely with `flex: 1`.

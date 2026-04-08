@@ -1,4 +1,5 @@
 "use client";
+import { getColumnCellStyle } from "./columnSizingStyle";
 import { useCallback, useState } from "react";
 import { toast, ToastContainer } from "react-toastify";
 import type { ColumnDef } from "./types";
@@ -160,11 +161,7 @@ const GridBody = <TData extends Record<string, unknown>>({
               <div
                 key={col.field}
                 className={cellClass}
-                style={
-                  col.maxWidth
-                    ? { maxWidth: col.maxWidth, minWidth: col.maxWidth }
-                    : undefined
-                }
+                style={getColumnCellStyle(col)}
                 role="cell"
                 title={displayValue}
                 tabIndex={0}

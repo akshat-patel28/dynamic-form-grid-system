@@ -1,3 +1,4 @@
+import { getColumnCellStyle } from "./columnSizingStyle";
 import type { ColumnDef } from "./types";
 import styles from "./grid.module.css";
 
@@ -53,11 +54,7 @@ const GridHeader = <
           className={[styles.headerCell, col.headerCellClassName]
             .filter(Boolean)
             .join(" ")}
-          style={
-            col.maxWidth
-              ? { maxWidth: col.maxWidth, minWidth: col.maxWidth }
-              : undefined
-          }
+          style={getColumnCellStyle(col)}
           role="columnheader"
         >
           {col.headerName ?? col.field}
