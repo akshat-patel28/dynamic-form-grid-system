@@ -11,13 +11,25 @@
 /**
  * Defines the configuration for a single column in the grid.
  *
+ * @template TData Shape of a single row data object. Defaults to
+ *   `Record<string, unknown>` when not specified.
+ *
  * @example
- * const columns: ColumnDef[] = [
+ * type Employee = { id: number; name: string; salary: number };
+ *
+ * const columns: ColumnDef<Employee>[] = [
  *   { headerName: 'Name',   field: 'name' },
  *   { headerName: 'Status', field: 'status', maxWidth: '120px', cellClass: 'text-center' },
+ *   {
+ *     headerName: 'Salary',
+ *     field: 'salary',
+ *     valueFormatter: ({ rowData }) => `$${rowData.salary.toFixed(2)}`,
+ *   },
  * ];
  */
-export interface ColumnDef {
+export interface ColumnDef<
+  TData extends Record<string, unknown> = Record<string, unknown>,
+> {
   /**
    * Text displayed in the column header.
    * If omitted the header cell renders empty.
@@ -42,6 +54,27 @@ export interface ColumnDef {
    * When omitted the column grows freely with `flex: 1`.
    */
   maxWidth?: string;
+
+  /**
+   * Optional formatter applied to a cell before it is rendered.
+   * Receives the entire row object so the formatter can derive its output
+   * from any combination of fields. Must return the display string.
+   * When omitted the raw `row[field]` value is coerced to a string directly.
+   *
+   * @param params.rowData - The full row data object for this cell's row.
+   * @returns The formatted string to display in the cell.
+   *
+   * @example
+   * // Currency — uses only the target field
+   * valueFormatter: ({ rowData }) => `$${Number(rowData.price).toFixed(2)}`
+   *
+   * // Composite — combines multiple fields
+   * valueFormatter: ({ rowData }) => `${rowData.firstName} ${rowData.lastName}`
+   *
+   * // Date
+   * valueFormatter: ({ rowData }) => new Date(String(rowData.createdAt)).toLocaleDateString()
+   */
+  valueFormatter?: (params: { rowData: TData }) => string;
 }
 
 /**
@@ -65,7 +98,7 @@ export interface GridProps<
    * Column definitions that control the structure and appearance of the grid.
    * Rendered left-to-right in the order provided.
    */
-  columnDefs: ColumnDef[];
+  columnDefs: ColumnDef<TData>[];
 
   /**
    * Array of row data objects to display.
