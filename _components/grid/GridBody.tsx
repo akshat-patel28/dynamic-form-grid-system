@@ -1,5 +1,6 @@
 "use client";
 import { useCallback, useState } from "react";
+import { toast, ToastContainer } from "react-toastify";
 import type { ColumnDef } from "./types";
 import styles from "./grid.module.css";
 
@@ -104,11 +105,11 @@ const GridBody = <TData extends Record<string, unknown>>({
    */
   const handleCellKeyDown = useCallback(
     (value: string) => (event: React.KeyboardEvent<HTMLDivElement>) => {
-      if ((event.ctrlKey || event.metaKey) && event.key === 'c') {
+      if ((event.ctrlKey || event.metaKey) && event.key === "c") {
         event.preventDefault();
         event.stopPropagation();
         navigator.clipboard.writeText(value);
-        alert('Copied to clipboard');
+        toast.success("Cell value copied");
       }
     },
     [],
@@ -177,6 +178,18 @@ const GridBody = <TData extends Record<string, unknown>>({
           })}
         </div>
       ))}
+      <ToastContainer
+        position="bottom-center"
+        autoClose={2000}
+        hideProgressBar={false}
+        newestOnTop={false}
+        closeOnClick={false}
+        rtl={false}
+        pauseOnFocusLoss
+        draggable
+        pauseOnHover
+        theme="dark"
+      />
     </>
   );
 };
