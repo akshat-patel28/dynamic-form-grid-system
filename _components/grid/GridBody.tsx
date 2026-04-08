@@ -3,6 +3,7 @@ import { getColumnCellStyle } from "./columnSizingStyle";
 import { useCallback, useState } from "react";
 import { toast, ToastContainer } from "react-toastify";
 import type { ColumnDef } from "./types";
+import { useRowSelection } from "./useRowSelection";
 import styles from "./grid.module.css";
 
 /**
@@ -80,6 +81,8 @@ const GridBody = <TData extends Record<string, unknown>>({
    * `null` when no cell is focused (e.g. focus is outside the grid).
    */
   const [focusedCell, setFocusedCell] = useState<FocusedCell | null>(null);
+  const { toggleRow, isSelected } = useRowSelection();
+  const hasCheckboxColumn = columnDefs.some((col) => col.checkboxSelection);
 
   /**
    * Resolves the display string for a cell.
@@ -135,46 +138,73 @@ const GridBody = <TData extends Record<string, unknown>>({
 
   return (
     <>
-      {rowData.map((row, rowIndex) => (
-        <div
-          key={(row.id as string | number | undefined) ?? rowIndex}
-          className={styles.bodyRow}
-          role="row"
-        >
-          {columnDefs.map((col, colIndex) => {
-            const displayValue = resolveCellValue(col, row);
+      {rowData.map((row, rowIndex) => {
+        const rowSelected = hasCheckboxColumn && isSelected(rowIndex);
 
-            const isFocused =
-              focusedCell?.rowIndex === rowIndex &&
-              focusedCell?.colIndex === colIndex;
+        const rowClass = [
+          styles.bodyRow,
+          rowSelected ? styles.bodyRowSelected : "",
+        ]
+          .filter(Boolean)
+          .join(" ");
 
-            const cellClass = [
-              styles.bodyCell,
-              isFocused ? styles.bodyCellFocused : "",
-              col.cellClass ?? "",
-              col.bodyCellClassName ?? "",
-            ]
-              .filter(Boolean)
-              .join(" ");
+        return (
+          <div
+            key={(row.id as string | number | undefined) ?? rowIndex}
+            className={rowClass}
+            role="row"
+          >
+            {columnDefs.map((col, colIndex) => {
+              if (col.checkboxSelection) {
+                return (
+                  <div
+                    key={col.field}
+                    className={`${styles.bodyCell} ${styles.checkboxCell}`}
+                    role="cell"
+                  >
+                    <input
+                      type="checkbox"
+                      checked={rowSelected}
+                      onChange={() => toggleRow(rowIndex)}
+                    />
+                  </div>
+                );
+              }
 
-            return (
-              <div
-                key={col.field}
-                className={cellClass}
-                style={getColumnCellStyle(col)}
-                role="cell"
-                title={displayValue}
-                tabIndex={0}
-                onFocus={() => setFocusedCell({ rowIndex, colIndex })}
-                onBlur={() => setFocusedCell(null)}
-                onKeyDown={handleCellKeyDown(displayValue)}
-              >
-                {displayValue}
-              </div>
-            );
-          })}
-        </div>
-      ))}
+              const displayValue = resolveCellValue(col, row);
+
+              const isFocused =
+                focusedCell?.rowIndex === rowIndex &&
+                focusedCell?.colIndex === colIndex;
+
+              const cellClass = [
+                styles.bodyCell,
+                isFocused ? styles.bodyCellFocused : "",
+                col.cellClass ?? "",
+                col.bodyCellClassName ?? "",
+              ]
+                .filter(Boolean)
+                .join(" ");
+
+              return (
+                <div
+                  key={col.field}
+                  className={cellClass}
+                  style={getColumnCellStyle(col)}
+                  role="cell"
+                  title={displayValue}
+                  tabIndex={0}
+                  onFocus={() => setFocusedCell({ rowIndex, colIndex })}
+                  onBlur={() => setFocusedCell(null)}
+                  onKeyDown={handleCellKeyDown(displayValue)}
+                >
+                  {displayValue}
+                </div>
+              );
+            })}
+          </div>
+        );
+      })}
       <ToastContainer
         position="bottom-center"
         autoClose={2000}
