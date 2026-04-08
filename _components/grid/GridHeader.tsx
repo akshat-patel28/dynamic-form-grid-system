@@ -48,18 +48,30 @@ const GridHeader = <
 }: GridHeaderProps<TData>) => {
   return (
     <div className={styles.headerRow} role="row">
-      {columnDefs.map((col) => (
-        <div
-          key={col.field}
-          className={[styles.headerCell, col.headerCellClassName]
-            .filter(Boolean)
-            .join(" ")}
-          style={getColumnCellStyle(col)}
-          role="columnheader"
-        >
-          {col.headerName ?? col.field}
-        </div>
-      ))}
+      {columnDefs.map((col) => {
+        if (col.checkboxSelection) {
+          return (
+            <div
+              key={col.field}
+              className={`${styles.headerCell} ${styles.checkboxCell}`}
+              role="columnheader"
+            />
+          );
+        }
+
+        return (
+          <div
+            key={col.field}
+            className={[styles.headerCell, col.headerCellClassName]
+              .filter(Boolean)
+              .join(" ")}
+            style={getColumnCellStyle(col)}
+            role="columnheader"
+          >
+            {col.headerName ?? col.field}
+          </div>
+        );
+      })}
     </div>
   );
 };
