@@ -1,7 +1,7 @@
-'use client';
-import { useCallback, useState } from 'react';
-import type { ColumnDef } from './types';
-import styles from './grid.module.css';
+"use client";
+import { useCallback, useState } from "react";
+import type { ColumnDef } from "./types";
+import styles from "./grid.module.css";
 
 /**
  * Identifies a single focused cell by its row and column index.
@@ -91,11 +91,34 @@ const GridBody = <TData extends Record<string, unknown>>({
    * @param row - The full row data object the cell belongs to.
    * @returns The string to display inside the cell.
    */
+  /**
+   * Returns a `keydown` handler for a cell that copies the cell's display
+   * value to the clipboard when the user presses Ctrl+C / Cmd+C.
+   *
+   * Implemented as a curried `useCallback` so the factory itself is stable
+   * across renders; each call returns a lightweight closure bound to the
+   * specific `value` string for that cell.
+   *
+   * @param value - The display string already rendered inside the cell.
+   * @returns A `KeyboardEvent` handler for the cell `<div>`.
+   */
+  const handleCellKeyDown = useCallback(
+    (value: string) => (event: React.KeyboardEvent<HTMLDivElement>) => {
+      if ((event.ctrlKey || event.metaKey) && event.key === 'c') {
+        event.preventDefault();
+        event.stopPropagation();
+        navigator.clipboard.writeText(value);
+        alert('Copied to clipboard');
+      }
+    },
+    [],
+  );
+
   const resolveCellValue = useCallback(
     (col: ColumnDef<TData>, row: TData): string => {
       if (col.valueFormatter) return col.valueFormatter({ rowData: row });
       const raw = row[col.field];
-      return raw === null || raw === undefined ? '' : String(raw);
+      return raw === null || raw === undefined ? "" : String(raw);
     },
     [],
   );
@@ -125,12 +148,12 @@ const GridBody = <TData extends Record<string, unknown>>({
 
             const cellClass = [
               styles.bodyCell,
-              isFocused ? styles.bodyCellFocused : '',
-              col.cellClass ?? '',
-              col.bodyCellClassName ?? '',
+              isFocused ? styles.bodyCellFocused : "",
+              col.cellClass ?? "",
+              col.bodyCellClassName ?? "",
             ]
               .filter(Boolean)
-              .join(' ');
+              .join(" ");
 
             return (
               <div
@@ -146,6 +169,7 @@ const GridBody = <TData extends Record<string, unknown>>({
                 tabIndex={0}
                 onFocus={() => setFocusedCell({ rowIndex, colIndex })}
                 onBlur={() => setFocusedCell(null)}
+                onKeyDown={handleCellKeyDown(displayValue)}
               >
                 {displayValue}
               </div>

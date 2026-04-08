@@ -1,5 +1,5 @@
-import type { ColumnDef } from './types';
-import styles from './grid.module.css';
+import type { ColumnDef } from "./types";
+import styles from "./grid.module.css";
 
 /**
  * Props for the `GridHeader` component.
@@ -40,7 +40,9 @@ interface GridHeaderProps<
  *   ]}
  * />
  */
-const GridHeader = <TData extends Record<string, unknown> = Record<string, unknown>>({
+const GridHeader = <
+  TData extends Record<string, unknown> = Record<string, unknown>,
+>({
   columnDefs,
 }: GridHeaderProps<TData>) => {
   return (
@@ -48,7 +50,9 @@ const GridHeader = <TData extends Record<string, unknown> = Record<string, unkno
       {columnDefs.map((col) => (
         <div
           key={col.field}
-          className={[styles.headerCell, col.headerCellClassName].filter(Boolean).join(' ')}
+          className={[styles.headerCell, col.headerCellClassName]
+            .filter(Boolean)
+            .join(" ")}
           style={
             col.maxWidth
               ? { maxWidth: col.maxWidth, minWidth: col.maxWidth }

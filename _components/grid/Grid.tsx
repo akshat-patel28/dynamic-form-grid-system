@@ -1,7 +1,7 @@
-import type { GridProps } from './types';
-import GridHeader from './GridHeader';
-import GridBody from './GridBody';
-import styles from './grid.module.css';
+import type { GridProps } from "./types";
+import GridHeader from "./GridHeader";
+import GridBody from "./GridBody";
+import styles from "./grid.module.css";
 
 /**
  * Grid
