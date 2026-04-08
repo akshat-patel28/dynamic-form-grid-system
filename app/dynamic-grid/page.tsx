@@ -15,6 +15,7 @@ import type { EmployeeRow } from "@/helpers/mock/gridDemoData";
  * matching key in {@link DEMO_ROWS}.
  */
 const DEMO_COLUMNS: ColumnDef<EmployeeRow>[] = [
+  { field: "select", checkboxSelection: true },
   { headerName: "ID", field: "id", maxWidth: "80px" },
   { headerName: "First Name", field: "firstName" },
   { headerName: "Last Name", field: "lastName" },
