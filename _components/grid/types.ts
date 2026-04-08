@@ -93,6 +93,7 @@ export interface ColumnDef<
    * valueFormatter: ({ rowData }) => new Date(String(rowData.createdAt)).toLocaleDateString()
    */
   valueFormatter?: (params: { rowData: TData }) => string;
+  editable?: boolean | ((params: { rowData: TData }) => boolean);
 }
 
 /**
