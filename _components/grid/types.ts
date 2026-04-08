@@ -106,6 +106,13 @@ export interface ColumnDef<
    */
   valueFormatter?: (params: { rowData: TData }) => string;
   editable?: boolean | ((params: { rowData: TData }) => boolean);
+
+  /**
+   * When `true`, this column renders a checkbox instead of data.
+   * Checking the checkbox highlights the entire row.
+   * Only one column in the array should have this enabled.
+   */
+  checkboxSelection?: boolean;
 }
 
 /**
