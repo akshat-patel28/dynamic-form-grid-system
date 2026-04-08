@@ -198,7 +198,7 @@ const GridBody = <TData extends Record<string, unknown>>({
                   onBlur={() => setFocusedCell(null)}
                   onKeyDown={handleCellKeyDown(displayValue)}
                 >
-                  {displayValue}
+                  <span className={styles.bodyCellText}>{displayValue}</span>
                 </div>
               );
             })}

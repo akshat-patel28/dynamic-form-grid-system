@@ -62,8 +62,13 @@
   background: #ffffff;
   color: #334155;
   overflow: hidden;
+}
+
+.bodyCellText {
+  overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+  min-width: 0;
 }
 
 .emptyState {
