@@ -197,6 +197,10 @@ const GridBody = <TData extends Record<string, unknown>>({
                   onFocus={() => setFocusedCell({ rowIndex, colIndex })}
                   onBlur={() => setFocusedCell(null)}
                   onKeyDown={handleCellKeyDown(displayValue)}
+                  onDoubleClick={() =>
+                    // TODO; render the edit fied with the value  in that field
+                    console.log("double click", rowIndex, colIndex)
+                  }
                 >
                   <span className={styles.bodyCellText}>{displayValue}</span>
                 </div>
