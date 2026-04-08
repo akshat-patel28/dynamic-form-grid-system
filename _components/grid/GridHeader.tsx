@@ -3,13 +3,18 @@ import styles from './grid.module.css';
 
 /**
  * Props for the `GridHeader` component.
+ *
+ * @template TData Shape of a single row data object. Defaults to
+ *   `Record<string, unknown>` when not specified.
  */
-interface GridHeaderProps {
+interface GridHeaderProps<
+  TData extends Record<string, unknown> = Record<string, unknown>,
+> {
   /**
    * Column definitions that drive the header cells.
    * Each entry produces exactly one `<div>` cell in the sticky header row.
    */
-  columnDefs: ColumnDef[];
+  columnDefs: ColumnDef<TData>[];
 }
 
 /**
@@ -35,7 +40,9 @@ interface GridHeaderProps {
  *   ]}
  * />
  */
-const GridHeader = ({ columnDefs }: GridHeaderProps) => {
+const GridHeader = <TData extends Record<string, unknown> = Record<string, unknown>>({
+  columnDefs,
+}: GridHeaderProps<TData>) => {
   return (
     <div className={styles.headerRow} role="row">
       {columnDefs.map((col) => (

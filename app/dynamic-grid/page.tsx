@@ -1,8 +1,11 @@
-import Link from 'next/link';
-import { Grid } from '@/_components/grid';
-import type { ColumnDef } from '@/_components/grid';
-import { PAGE_ROUTE } from '@/helpers/constant/constant';
-import { DEMO_ROWS } from '@/helpers/mock/gridDemoData';
+"use client";
+
+import Link from "next/link";
+import { Grid } from "@/_components/grid";
+import type { ColumnDef } from "@/_components/grid";
+import { PAGE_ROUTE } from "@/helpers/constant/constant";
+import { DEMO_ROWS } from "@/helpers/mock/gridDemoData";
+import type { EmployeeRow } from "@/helpers/mock/gridDemoData";
 
 /**
  * Column schema for the demo grid.
@@ -11,29 +14,42 @@ import { DEMO_ROWS } from '@/helpers/mock/gridDemoData';
  * total column width exceeds the viewport. Each `field` value maps to the
  * matching key in {@link DEMO_ROWS}.
  */
-const DEMO_COLUMNS: ColumnDef[] = [
-  { headerName: 'ID',             field: 'id',            maxWidth: '80px' },
-  { headerName: 'First Name',     field: 'firstName' },
-  { headerName: 'Last Name',      field: 'lastName' },
-  { headerName: 'Email',          field: 'email' },
-  { headerName: 'Phone',          field: 'phone' },
-  { headerName: 'Department',     field: 'department' },
-  { headerName: 'Designation',    field: 'designation' },
-  { headerName: 'Employee Code',  field: 'employeeCode',  maxWidth: '160px' },
-  { headerName: 'Date of Join',   field: 'dateOfJoin' },
-  { headerName: 'Date of Birth',  field: 'dateOfBirth' },
-  { headerName: 'Gender',         field: 'gender',        maxWidth: '110px' },
-  { headerName: 'Location',       field: 'location' },
-  { headerName: 'City',           field: 'city' },
-  { headerName: 'State',          field: 'state' },
-  { headerName: 'Country',        field: 'country' },
-  { headerName: 'Pincode',        field: 'pincode',       maxWidth: '130px' },
-  { headerName: 'Salary',         field: 'salary',        maxWidth: '140px' },
-  { headerName: 'Currency',       field: 'currency',      maxWidth: '110px' },
-  { headerName: 'Manager',        field: 'manager' },
-  { headerName: 'Team',           field: 'team' },
-  { headerName: 'Status',         field: 'status',        maxWidth: '120px' },
-  { headerName: 'Last Updated',   field: 'lastUpdated' },
+const DEMO_COLUMNS: ColumnDef<EmployeeRow>[] = [
+  { headerName: "ID", field: "id", maxWidth: "80px" },
+  { headerName: "First Name", field: "firstName" },
+  { headerName: "Last Name", field: "lastName" },
+  { headerName: "Email", field: "email" },
+  { headerName: "Phone", field: "phone" },
+  { headerName: "Department", field: "department" },
+  { headerName: "Designation", field: "designation" },
+  { headerName: "Employee Code", field: "employeeCode", maxWidth: "160px" },
+  { headerName: "Date of Join", field: "dateOfJoin" },
+  { headerName: "Date of Birth", field: "dateOfBirth" },
+  { headerName: "Gender", field: "gender", maxWidth: "110px" },
+  { headerName: "Location", field: "location" },
+  { headerName: "City", field: "city" },
+  { headerName: "State", field: "state" },
+  { headerName: "Country", field: "country" },
+  { headerName: "Pincode", field: "pincode", maxWidth: "130px" },
+  {
+    headerName: "Salary",
+    field: "salary",
+    maxWidth: "160px",
+    valueFormatter: ({ rowData }) => {
+      const num = Number.parseFloat(String(rowData.salary).replaceAll(",", ""));
+      if (Number.isNaN(num)) return String(rowData.salary);
+      return new Intl.NumberFormat("en-US", {
+        style: "currency",
+        currency: String(rowData.currency),
+        maximumFractionDigits: 0,
+      }).format(num);
+    },
+  },
+  { headerName: "Currency", field: "currency", maxWidth: "110px" },
+  { headerName: "Manager", field: "manager" },
+  { headerName: "Team", field: "team" },
+  { headerName: "Status", field: "status", maxWidth: "120px" },
+  { headerName: "Last Updated", field: "lastUpdated" },
 ];
 
 /**
@@ -50,18 +66,31 @@ const DEMO_COLUMNS: ColumnDef[] = [
  */
 export default function DynamicGridPage() {
   return (
-    <main style={{ padding: '24px' }}>
+    <main style={{ padding: "24px" }}>
       <Link
         href={PAGE_ROUTE.HOME}
-        style={{ display: 'inline-block', marginBottom: '16px', fontSize: '0.875rem' }}
+        style={{
+          display: "inline-block",
+          marginBottom: "16px",
+          fontSize: "0.875rem",
+        }}
       >
         ← Back
       </Link>
 
-      <h1 style={{ marginBottom: '4px', fontSize: '1.25rem', fontWeight: 700, color: '#1e293b' }}>
+      <h1
+        style={{
+          marginBottom: "4px",
+          fontSize: "1.25rem",
+          fontWeight: 700,
+          color: "#1e293b",
+        }}
+      >
         Dynamic Grid
       </h1>
-      <p style={{ marginBottom: '20px', fontSize: '0.875rem', color: '#64748b' }}>
+      <p
+        style={{ marginBottom: "20px", fontSize: "0.875rem", color: "#64748b" }}
+      >
         22 columns · 50 rows · horizontal + vertical scroll
       </p>
 

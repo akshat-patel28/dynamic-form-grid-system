@@ -1,6 +1,5 @@
 'use client';
-
-import { useState } from 'react';
+import { useCallback, useState } from 'react';
 import type { ColumnDef } from './types';
 import styles from './grid.module.css';
 
@@ -25,7 +24,7 @@ interface GridBodyProps<
    * Column definitions used to determine which fields to read from each row
    * and any optional cell-level styling.
    */
-  columnDefs: ColumnDef[];
+  columnDefs: ColumnDef<TData>[];
 
   /**
    * Array of row data objects to render.
@@ -80,6 +79,27 @@ const GridBody = <TData extends Record<string, unknown>>({
    */
   const [focusedCell, setFocusedCell] = useState<FocusedCell | null>(null);
 
+  /**
+   * Resolves the display string for a cell.
+   *
+   * Resolution order:
+   * 1. `col.valueFormatter({ rowData })` — when a formatter is defined on the column.
+   * 2. `''`                              — when the raw value is `null` or `undefined`.
+   * 3. `String(rawValue)`               — fallback coercion for all other values.
+   *
+   * @param col - The column definition for the cell being rendered.
+   * @param row - The full row data object the cell belongs to.
+   * @returns The string to display inside the cell.
+   */
+  const resolveCellValue = useCallback(
+    (col: ColumnDef<TData>, row: TData): string => {
+      if (col.valueFormatter) return col.valueFormatter({ rowData: row });
+      const raw = row[col.field];
+      return raw === null || raw === undefined ? '' : String(raw);
+    },
+    [],
+  );
+
   if (rowData.length === 0) {
     return (
       <div className={styles.emptyState}>
@@ -97,11 +117,7 @@ const GridBody = <TData extends Record<string, unknown>>({
           role="row"
         >
           {columnDefs.map((col, colIndex) => {
-            const rawValue = row[col.field];
-            const displayValue =
-              rawValue === null || rawValue === undefined
-                ? ''
-                : String(rawValue);
+            const displayValue = resolveCellValue(col, row);
 
             const isFocused =
               focusedCell?.rowIndex === rowIndex &&
