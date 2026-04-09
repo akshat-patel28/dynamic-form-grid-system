@@ -13,5 +13,5 @@
  * import type { ColumnDef, GridProps } from '@/_components/grid';
  */
 
-export { default as Grid } from './Grid';
-export type { ColumnDef, GridProps } from './types';
+export { default as Grid } from "./Grid";
+export type { ColumnDef, GridProps } from "./helpers/types/types";

@@ -1,10 +1,10 @@
 "use client";
-import { getColumnCellStyle } from "./columnSizingStyle";
+import { getColumnCellStyle } from "../helpers/utils/columnSizingStyle";
 import { useCallback, useState } from "react";
 import { toast, ToastContainer } from "react-toastify";
-import type { ColumnDef } from "./types";
-import { useRowSelection } from "./useRowSelection";
-import styles from "./grid.module.css";
+import type { ColumnDef } from "../helpers/types/types";
+import { useRowSelection } from "../helpers/hooks/useRowSelection";
+import styles from "../grid.module.css";
 
 /**
  * Identifies a single focused cell by its row and column index.

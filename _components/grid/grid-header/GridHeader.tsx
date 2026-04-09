@@ -1,6 +1,6 @@
-import { getColumnCellStyle } from "./columnSizingStyle";
-import type { ColumnDef } from "./types";
-import styles from "./grid.module.css";
+import { getColumnCellStyle } from "../helpers/utils/columnSizingStyle";
+import type { ColumnDef } from "../helpers/types/types";
+import styles from "../grid.module.css";
 
 /**
  * Props for the `GridHeader` component.

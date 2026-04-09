@@ -1,5 +1,5 @@
 import type { CSSProperties } from "react";
-import type { ColumnDef } from "./types";
+import type { ColumnDef } from "../types/types";
 
 /**
  * Inline styles for header/body cells from column width constraints.
