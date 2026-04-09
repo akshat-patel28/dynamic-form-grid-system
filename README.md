@@ -1,4 +1,4 @@
-# Dynamic form grid system
+# Dynamic Form & Grid System
 
 A small [Next.js](https://nextjs.org) app built around a reusable, scrollable data **grid**: column definitions, row data, optional row selection, and demo pages for dynamic forms and grids.
 
@@ -15,17 +15,17 @@ Open [http://localhost:3000](http://localhost:3000). Demo routes include `/dynam
 
 Other scripts:
 
-- `npm run build` — production build  
-- `npm run start` — run the production server (after `build`)  
-- `npm run lint` — ESLint  
+- `npm run build` — production build
+- `npm run start` — run the production server (after `build`)
+- `npm run lint` — ESLint
 
 ## Dev libraries
 
 These are the main **development** dependencies (tooling only; not shipped to the browser as app bundles):
 
-| Package | Role |
-| -------- | ---- |
-| **TypeScript** (`typescript`) | Static typing |
+| Package                                     | Role                         |
+| ------------------------------------------- | ---------------------------- |
+| **TypeScript** (`typescript`)               | Static typing                |
 | **ESLint** (`eslint`, `eslint-config-next`) | Linting aligned with Next.js |
 
 Runtime-related types: `@types/node`, `@types/react`, `@types/react-dom`.
