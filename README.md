@@ -1,36 +1,51 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Dynamic form grid system
 
-## Getting Started
+A small [Next.js](https://nextjs.org) app built around a reusable, scrollable data **grid**: column definitions, row data, optional row selection, and demo pages for dynamic forms and grids.
 
-First, run the development server:
+## Getting started
+
+From the project root:
 
 ```bash
+npm install
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Open [http://localhost:3000](http://localhost:3000). Demo routes include `/dynamic-grid` and `/dynamic-form` (see `app/`).
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+Other scripts:
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+- `npm run build` — production build  
+- `npm run start` — run the production server (after `build`)  
+- `npm run lint` — ESLint  
 
-## Learn More
+## Dev libraries
 
-To learn more about Next.js, take a look at the following resources:
+These are the main **development** dependencies (tooling only; not shipped to the browser as app bundles):
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+| Package | Role |
+| -------- | ---- |
+| **TypeScript** (`typescript`) | Static typing |
+| **ESLint** (`eslint`, `eslint-config-next`) | Linting aligned with Next.js |
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+Runtime-related types: `@types/node`, `@types/react`, `@types/react-dom`.
 
-## Deploy on Vercel
+App dependencies (for reference): **Next.js**, **React**, **react-dom**, **react-toastify** (copy-to-clipboard toasts in the grid).
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+## Folder structure (overview)
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+```text
+app/                    # Next.js App Router: layouts, pages, global styles
+  dynamic-grid/         # Grid demo page
+  dynamic-form/         # Dynamic form demo page
+
+_components/grid/       # Grid feature module (public API via index.ts)
+  Grid.tsx              # Composes header + body
+  grid-body/            # Body rows, cells, keyboard copy, selection UI
+  grid-header/          # Sticky header row
+  helpers/              # hooks/, utils/, types/ used only by the grid
+
+helpers/                # Shared app helpers (types, utils, mocks, constants)
+```
+
+Internal grid imports are kept under `_components/grid/`; pages and demos can import the grid from `@/_components/grid` (or the path alias your `tsconfig` defines).
