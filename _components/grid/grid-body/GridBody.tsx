@@ -1,10 +1,11 @@
 "use client";
 import { getColumnCellStyle } from "../helpers/utils/columnSizingStyle";
 import { useCallback, useState } from "react";
-import { toast, ToastContainer } from "react-toastify";
+import { ToastContainer } from "react-toastify";
 import type { ColumnDef } from "../helpers/types/types";
 import { useRowSelection } from "../helpers/hooks/useRowSelection";
 import styles from "../grid.module.css";
+import GridCellRenderer from "./cell-renderer/GridCellRenderer";
 
 /**
  * Identifies a single focused cell by its row and column index.
@@ -96,29 +97,6 @@ const GridBody = <TData extends Record<string, unknown>>({
    * @param row - The full row data object the cell belongs to.
    * @returns The string to display inside the cell.
    */
-  /**
-   * Returns a `keydown` handler for a cell that copies the cell's display
-   * value to the clipboard when the user presses Ctrl+C / Cmd+C.
-   *
-   * Implemented as a curried `useCallback` so the factory itself is stable
-   * across renders; each call returns a lightweight closure bound to the
-   * specific `value` string for that cell.
-   *
-   * @param value - The display string already rendered inside the cell.
-   * @returns A `KeyboardEvent` handler for the cell `<div>`.
-   */
-  const handleCellKeyDown = useCallback(
-    (value: string) => (event: React.KeyboardEvent<HTMLDivElement>) => {
-      if ((event.ctrlKey || event.metaKey) && event.key === "c") {
-        event.preventDefault();
-        event.stopPropagation();
-        navigator.clipboard.writeText(value);
-        toast.success("Cell value copied");
-      }
-    },
-    [],
-  );
-
   const resolveCellValue = useCallback(
     (col: ColumnDef<TData>, row: TData): string => {
       if (col.valueFormatter) return col.valueFormatter({ rowData: row });
@@ -187,23 +165,16 @@ const GridBody = <TData extends Record<string, unknown>>({
                 .join(" ");
 
               return (
-                <div
+                <GridCellRenderer
                   key={col.field}
-                  className={cellClass}
-                  style={getColumnCellStyle(col)}
-                  role="cell"
-                  title={displayValue}
-                  tabIndex={0}
+                  displayValue={displayValue}
+                  cellClass={cellClass}
+                  cellStyle={getColumnCellStyle(col)}
+                  rowIndex={rowIndex}
+                  colIndex={colIndex}
                   onFocus={() => setFocusedCell({ rowIndex, colIndex })}
                   onBlur={() => setFocusedCell(null)}
-                  onKeyDown={handleCellKeyDown(displayValue)}
-                  onDoubleClick={() =>
-                    // TODO; render the edit fied with the value  in that field
-                    console.log("double click", rowIndex, colIndex)
-                  }
-                >
-                  <span className={styles.bodyCellText}>{displayValue}</span>
-                </div>
+                />
               );
             })}
           </div>
