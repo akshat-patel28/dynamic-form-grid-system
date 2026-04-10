@@ -112,7 +112,7 @@ export default function GridCellRenderer<
 
   const handleDoubleClick = useCallback(() => {
     if (isEditable && columnDef.cellInputRenderer) {
-      setEditValue(displayValue);
+      setEditValue(row[columnDef.field]);
       setIsEditing(true);
       setTimeout(() => inputRef.current?.focus(), 0);
     }
@@ -125,9 +125,12 @@ export default function GridCellRenderer<
     setIsEditing(false);
   }, [editValue, displayValue, onCellValueChange, rowIndex, columnDef.field]);
 
-  const handleInputBlur = useCallback(() => {
-    commitValue();
-  }, [commitValue]);
+  const handleInputBlur = useCallback(
+    (e: React.FocusEvent<HTMLInputElement>) => {
+      commitValue();
+    },
+    [commitValue],
+  );
 
   const handleInputKeyDown = useCallback(
     (e: React.KeyboardEvent<HTMLDivElement>) => {

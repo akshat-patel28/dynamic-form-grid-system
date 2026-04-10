@@ -52,8 +52,12 @@ const DEMO_COLUMNS: ColumnDef<EmployeeRow>[] = [
     field: "salary",
     maxWidth: "160px",
     valueFormatter: ({ rowData }) => {
-      const num = Number.parseFloat(String(rowData.salary).replaceAll(",", ""));
-      if (Number.isNaN(num)) return String(rowData.salary);
+      const raw = rowData.salary;
+      const num =
+        typeof raw === "number"
+          ? raw
+          : Number.parseFloat(String(raw).replaceAll(",", ""));
+      if (Number.isNaN(num)) return String(raw ?? "");
       return new Intl.NumberFormat("en-US", {
         style: "currency",
         currency: String(rowData.currency),
