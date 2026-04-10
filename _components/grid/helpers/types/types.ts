@@ -5,8 +5,10 @@
  * or passing props to `<Grid />`.
  *
  * @example
- * import type { ColumnDef, GridProps } from '@/_components/grid';
+ * import type { ColumnDef, GridProps, FocusedCell, GridCellRendererProps } from '@/_components/grid';
  */
+
+import type { CSSProperties } from "react";
 
 /**
  * Defines the configuration for a single column in the grid.
@@ -144,4 +146,51 @@ export interface GridProps<
    * the corresponding `ColumnDef`. An empty array renders the empty state.
    */
   rowData: TData[];
+}
+
+/**
+ * Identifies the focused body cell by row and column index (state held in `GridBody`).
+ */
+export interface FocusedCell {
+  rowIndex: number;
+  colIndex: number;
+}
+
+/**
+ * Props for the default body cell component (`GridCellRenderer`) for non-checkbox columns.
+ *
+ * @template TData Shape of a single row object.
+ */
+export interface GridCellRendererProps<
+  TData extends Record<string, unknown> = Record<string, unknown>,
+> {
+  /** Column definition for this cell (field, formatter, width hints, etc.). */
+  columnDef: ColumnDef<TData>;
+
+  /**
+   * Full row object; the cell renderer resolves the visible string from the column’s
+   * `valueFormatter` or `field` (see `GridCellRenderer`).
+   */
+  row: TData;
+
+  /**
+   * Which cell in the grid body currently has focus, or `null` when focus is elsewhere.
+   * Used with `rowIndex` / `colIndex` to apply the focused cell class and build class names.
+   */
+  focusedCell: FocusedCell | null;
+
+  /** Inline width constraints from the column definition; `undefined` when none apply. */
+  cellStyle: CSSProperties | undefined;
+
+  /** Zero-based row index within the current `rowData` slice. */
+  rowIndex: number;
+
+  /** Zero-based column index within `columnDefs` (including checkbox column if present). */
+  colIndex: number;
+
+  /** Called when the cell receives focus; parent typically records `{ rowIndex, colIndex }`. */
+  onFocus: () => void;
+
+  /** Called when the cell loses focus; parent typically clears the focused-cell state. */
+  onBlur: () => void;
 }

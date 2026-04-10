@@ -14,4 +14,9 @@
  */
 
 export { default as Grid } from "./Grid";
-export type { ColumnDef, GridProps } from "./helpers/types/types";
+export type {
+  ColumnDef,
+  FocusedCell,
+  GridCellRendererProps,
+  GridProps,
+} from "./helpers/types/types";

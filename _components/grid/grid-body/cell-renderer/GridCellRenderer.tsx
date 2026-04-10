@@ -2,46 +2,44 @@
 
 import { useCallback } from "react";
 import { toast } from "react-toastify";
+import type { ColumnDef, GridCellRendererProps } from "../../helpers/types/types";
 import styles from "../../grid.module.css";
 
 /**
- * Props for {@link GridCellRenderer}, the default body cell for non-checkbox columns.
+ * Resolves the display string for a cell.
+ *
+ * Resolution order:
+ * 1. `col.valueFormatter({ rowData })` — when a formatter is defined on the column.
+ * 2. `''` — when the raw value is `null` or `undefined`.
+ * 3. `String(rawValue)` — fallback coercion for all other values.
+ *
+ * @param col - The column definition for the cell being rendered.
+ * @param row - The full row data object the cell belongs to.
+ * @returns The string to display inside the cell.
  */
-export interface GridCellRendererProps {
-  /** Resolved string shown in the cell (after formatters and null handling). */
-  displayValue: string;
-
-  /**
-   * Combined CSS class names for the cell wrapper, including focus and column
-   * overrides from the parent grid.
-   */
-  cellClass: string;
-
-  /** Inline width constraints from the column definition; `undefined` when none apply. */
-  cellStyle: React.CSSProperties | undefined;
-
-  /** Zero-based row index within the current `rowData` slice. */
-  rowIndex: number;
-
-  /** Zero-based column index within `columnDefs` (including checkbox column if present). */
-  colIndex: number;
-
-  /** Called when the cell receives focus; parent typically records `{ rowIndex, colIndex }`. */
-  onFocus: () => void;
-
-  /** Called when the cell loses focus; parent typically clears the focused-cell state. */
-  onBlur: () => void;
+function resolveCellValue<TData extends Record<string, unknown>>(
+  col: ColumnDef<TData>,
+  row: TData,
+): string {
+  if (col.valueFormatter) return col.valueFormatter({ rowData: row });
+  const raw = row[col.field];
+  return raw === null || raw === undefined ? "" : String(raw);
 }
 
 /**
  * GridCellRenderer
  *
  * Renders a single focusable data cell (`role="cell"`) with the formatted display value.
- * Used by {@link GridBody} for columns that are not checkbox selection columns.
+ * Display text comes from {@link resolveCellValue}. Used by {@link GridBody} for columns
+ * that are not checkbox selection columns.
  *
  * ### Clipboard
- * **Ctrl+C** / **Cmd+C** copies {@link GridCellRendererProps.displayValue} to the
- * clipboard and shows a short success toast (via `react-toastify`).
+ * **Ctrl+C** / **Cmd+C** copies the resolved display string to the clipboard and shows
+ * a short success toast (via `react-toastify`).
+ *
+ * ### Focus highlight
+ * When `focusedCell` matches this cell’s indices, the wrapper
+ * gets `bodyCellFocused` plus base and column-specific classes.
  *
  * ### Double-click
  * Placeholder handler logs row/column indices; inline editing is not implemented yet.
@@ -49,15 +47,32 @@ export interface GridCellRendererProps {
  * @param props - {@link GridCellRendererProps}
  * @returns A cell `<div>` containing the display text span.
  */
-export default function GridCellRenderer({
-  displayValue,
-  cellClass,
+export default function GridCellRenderer<
+  TData extends Record<string, unknown>,
+>({
+  columnDef,
+  row,
+  focusedCell,
   cellStyle,
   rowIndex,
   colIndex,
   onFocus,
   onBlur,
-}: GridCellRendererProps) {
+}: GridCellRendererProps<TData>) {
+  const displayValue = resolveCellValue(columnDef, row);
+
+  const isFocused =
+    focusedCell?.rowIndex === rowIndex && focusedCell?.colIndex === colIndex;
+
+  const cellClass = [
+    styles.bodyCell,
+    isFocused ? styles.bodyCellFocused : "",
+    columnDef.cellClass ?? "",
+    columnDef.bodyCellClassName ?? "",
+  ]
+    .filter(Boolean)
+    .join(" ");
+
   /**
    * Returns a `keydown` handler for a cell that copies the cell's display
    * value to the clipboard when the user presses Ctrl+C / Cmd+C.

@@ -1,19 +1,11 @@
 "use client";
 import { getColumnCellStyle } from "../helpers/utils/columnSizingStyle";
-import { useCallback, useState } from "react";
+import { useState } from "react";
 import { ToastContainer } from "react-toastify";
-import type { ColumnDef } from "../helpers/types/types";
+import type { ColumnDef, FocusedCell } from "../helpers/types/types";
 import { useRowSelection } from "../helpers/hooks/useRowSelection";
 import styles from "../grid.module.css";
 import GridCellRenderer from "./cell-renderer/GridCellRenderer";
-
-/**
- * Identifies a single focused cell by its row and column index.
- */
-interface FocusedCell {
-  rowIndex: number;
-  colIndex: number;
-}
 
 /**
  * Props for the `GridBody` component.
@@ -45,9 +37,8 @@ interface GridBodyProps<
  * `rowData` it produces one row `<div>` containing one cell per column.
  *
  * ### Cell value resolution
- * The value displayed in each cell is read directly from `row[col.field]`.
- * `null` / `undefined` fields render as an empty string so cell layout is
- * preserved.
+ * Non-checkbox cells use {@link resolveCellValue} in {@link GridCellRenderer}
+ * (`valueFormatter` when set, otherwise `row[col.field]` with null-safe string coercion).
  *
  * ### Keyboard navigation
  * Every cell is focusable (`tabIndex={0}`). Pressing **Tab** advances focus to
@@ -56,9 +47,8 @@ interface GridBodyProps<
  * management — no custom key handling is required.
  *
  * ### Focus highlight
- * The currently focused cell receives the `bodyCellFocused` CSS class, which
- * applies a visible outline and background tint so the active cell is always
- * identifiable, including when the grid is navigated by keyboard alone.
+ * Focus state is lifted here; {@link GridCellRenderer} applies `bodyCellFocused` when
+ * indices match so the active cell stays visible for keyboard navigation.
  *
  * ### Empty state
  * When `rowData` is an empty array a centred "No Records Found" message is
@@ -84,27 +74,6 @@ const GridBody = <TData extends Record<string, unknown>>({
   const [focusedCell, setFocusedCell] = useState<FocusedCell | null>(null);
   const { toggleRow, isSelected } = useRowSelection();
   const hasCheckboxColumn = columnDefs.some((col) => col.checkboxSelection);
-
-  /**
-   * Resolves the display string for a cell.
-   *
-   * Resolution order:
-   * 1. `col.valueFormatter({ rowData })` — when a formatter is defined on the column.
-   * 2. `''`                              — when the raw value is `null` or `undefined`.
-   * 3. `String(rawValue)`               — fallback coercion for all other values.
-   *
-   * @param col - The column definition for the cell being rendered.
-   * @param row - The full row data object the cell belongs to.
-   * @returns The string to display inside the cell.
-   */
-  const resolveCellValue = useCallback(
-    (col: ColumnDef<TData>, row: TData): string => {
-      if (col.valueFormatter) return col.valueFormatter({ rowData: row });
-      const raw = row[col.field];
-      return raw === null || raw === undefined ? "" : String(raw);
-    },
-    [],
-  );
 
   if (rowData.length === 0) {
     return (
@@ -149,26 +118,12 @@ const GridBody = <TData extends Record<string, unknown>>({
                 );
               }
 
-              const displayValue = resolveCellValue(col, row);
-
-              const isFocused =
-                focusedCell?.rowIndex === rowIndex &&
-                focusedCell?.colIndex === colIndex;
-
-              const cellClass = [
-                styles.bodyCell,
-                isFocused ? styles.bodyCellFocused : "",
-                col.cellClass ?? "",
-                col.bodyCellClassName ?? "",
-              ]
-                .filter(Boolean)
-                .join(" ");
-
               return (
                 <GridCellRenderer
                   key={col.field}
-                  displayValue={displayValue}
-                  cellClass={cellClass}
+                  columnDef={col}
+                  row={row}
+                  focusedCell={focusedCell}
                   cellStyle={getColumnCellStyle(col)}
                   rowIndex={rowIndex}
                   colIndex={colIndex}
