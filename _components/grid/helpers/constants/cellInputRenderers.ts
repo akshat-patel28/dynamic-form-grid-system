@@ -10,6 +10,8 @@
  */
 export const CELL_INPUT_RENDERERS = {
   TEXT_INPUT: "textInput",
+  NUMBER_INPUT: "numberInput",
+  EMAIL_INPUT: "emailInput",
 } as const;
 
 /** Union of all supported cell-input renderer string values. */

@@ -1,11 +1,14 @@
 "use client";
 
-import { useCallback, useRef, useState } from "react";
+import { useCallback, useMemo, useRef, useState } from "react";
 import { toast } from "react-toastify";
 import TextInput from "../../../inputs/TextInput";
 import { CELL_INPUT_RENDERERS } from "../../helpers/constants/cellInputRenderers";
 import type { CellInputRenderer } from "../../helpers/constants/cellInputRenderers";
-import type { ColumnDef, GridCellRendererProps } from "../../helpers/types/types";
+import type {
+  ColumnDef,
+  GridCellRendererProps,
+} from "../../helpers/types/types";
 import styles from "../../grid.module.css";
 
 /**
@@ -70,7 +73,7 @@ export default function GridCellRenderer<
   const displayValue = resolveCellValue(columnDef, row);
 
   const [isEditing, setIsEditing] = useState(false);
-  const [editValue, setEditValue] = useState(displayValue);
+  const [editValue, setEditValue] = useState(row[columnDef.field]);
   const inputRef = useRef<HTMLInputElement>(null);
 
   const isFocused =
@@ -107,71 +110,128 @@ export default function GridCellRenderer<
       ? columnDef.editable({ rowData: row })
       : !!columnDef.editable;
 
-  const handleDoubleClick = () => {
+  const handleDoubleClick = useCallback(() => {
     if (isEditable && columnDef.cellInputRenderer) {
       setEditValue(displayValue);
       setIsEditing(true);
       setTimeout(() => inputRef.current?.focus(), 0);
     }
-  };
+  }, [isEditable, columnDef.cellInputRenderer, displayValue]);
 
-  const commitValue = () => {
+  const commitValue = useCallback(() => {
     if (editValue !== displayValue) {
       onCellValueChange(rowIndex, columnDef.field, editValue);
     }
     setIsEditing(false);
-  };
+  }, [editValue, displayValue, onCellValueChange, rowIndex, columnDef.field]);
 
-  const handleInputBlur = () => {
+  const handleInputBlur = useCallback(() => {
     commitValue();
-  };
+  }, [commitValue]);
 
-  const handleInputKeyDown = (e: React.KeyboardEvent<HTMLDivElement>) => {
-    if (e.key === "Enter") {
-      commitValue();
-    } else if (e.key === "Escape") {
-      setIsEditing(false);
-    }
-  };
+  const handleInputKeyDown = useCallback(
+    (e: React.KeyboardEvent<HTMLDivElement>) => {
+      if (e.key === "Enter") {
+        commitValue();
+      } else if (e.key === "Escape") {
+        setIsEditing(false);
+      }
+    },
+    [commitValue],
+  );
+
+  const handleInputChange = useCallback(
+    (e: React.ChangeEvent<HTMLInputElement>) => {
+      setEditValue(e.target.value);
+    },
+    [],
+  );
+
+  /** Shared MUI sx props reused by every TextInput variant. */
+  const inputSx = useMemo(
+    () => ({
+      height: "100%",
+      "& .MuiOutlinedInput-root": { height: "100%" },
+    }),
+    [],
+  );
+
+  const inputSlotProps = useMemo(
+    () => ({
+      input: {
+        sx: { height: "100%", padding: 0, fontSize: "14px" },
+      },
+    }),
+    [],
+  );
 
   /** Map of cellInputRenderer values → JSX factory for that input type. */
-  const cellInputMap: Record<CellInputRenderer, () => React.ReactNode> = {
-    [CELL_INPUT_RENDERERS.TEXT_INPUT]: () => (
-      <TextInput
-        inputRef={inputRef}
-        value={editValue}
-        onChange={(e) => setEditValue(e.target.value)}
-        onBlur={handleInputBlur}
-        onKeyDown={handleInputKeyDown}
-        size="small"
-        variant="outlined"
-        className={styles.cellInput}
-        slotProps={{
-          input: {
-            sx: {
-              height: "100%",
-              padding: 0,
-              fontSize: "14px",
-            },
-          },
-        }}
-        sx={{
-          height: "100%",
-          "& .MuiOutlinedInput-root": {
-            height: "100%",
-          },
-        }}
-      />
-    ),
-  };
+  const cellInputMap = useMemo<
+    Record<CellInputRenderer, () => React.ReactNode>
+  >(
+    () => ({
+      [CELL_INPUT_RENDERERS.TEXT_INPUT]: () => (
+        <TextInput
+          inputRef={inputRef}
+          value={editValue}
+          onChange={handleInputChange}
+          onBlur={handleInputBlur}
+          onKeyDown={handleInputKeyDown}
+          size="small"
+          variant="outlined"
+          className={styles.cellInput}
+          slotProps={inputSlotProps}
+          sx={inputSx}
+        />
+      ),
+      [CELL_INPUT_RENDERERS.NUMBER_INPUT]: () => (
+        <TextInput
+          inputRef={inputRef}
+          type="number"
+          value={editValue}
+          onChange={handleInputChange}
+          onBlur={handleInputBlur}
+          onKeyDown={handleInputKeyDown}
+          size="small"
+          variant="outlined"
+          className={styles.cellInput}
+          slotProps={inputSlotProps}
+          sx={inputSx}
+        />
+      ),
+      [CELL_INPUT_RENDERERS.EMAIL_INPUT]: () => (
+        <TextInput
+          inputRef={inputRef}
+          type="email"
+          value={editValue}
+          onChange={handleInputChange}
+          onBlur={handleInputBlur}
+          onKeyDown={handleInputKeyDown}
+          size="small"
+          variant="outlined"
+          className={styles.cellInput}
+          slotProps={inputSlotProps}
+          sx={inputSx}
+        />
+      ),
+    }),
+    [
+      editValue,
+      handleInputChange,
+      handleInputBlur,
+      handleInputKeyDown,
+      inputSlotProps,
+      inputSx,
+    ],
+  );
 
-  const renderCellContent = () => {
+  const cellContent = useMemo(() => {
     if (isEditing && columnDef.cellInputRenderer) {
       const renderInput = cellInputMap[columnDef.cellInputRenderer];
       if (renderInput) return renderInput();
     }
     return <span className={styles.bodyCellText}>{displayValue}</span>;
-  };
+  }, [isEditing, columnDef.cellInputRenderer, cellInputMap, displayValue]);
 
   return (
     <div
@@ -185,7 +245,7 @@ export default function GridCellRenderer<
       onKeyDown={handleCellKeyDown(displayValue)}
       onDoubleClick={handleDoubleClick}
     >
-      {renderCellContent()}
+      {cellContent}
     </div>
   );
 }

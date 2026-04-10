@@ -17,9 +17,24 @@ import type { EmployeeRow } from "@/helpers/mock/gridDemoData";
 const DEMO_COLUMNS: ColumnDef<EmployeeRow>[] = [
   { field: "select", checkboxSelection: true },
   { headerName: "ID", field: "id", maxWidth: "80px" },
-  { headerName: "First Name", field: "firstName", editable: true, cellInputRenderer: CELL_INPUT_RENDERERS.TEXT_INPUT },
-  { headerName: "Last Name", field: "lastName", editable: true, cellInputRenderer: CELL_INPUT_RENDERERS.TEXT_INPUT },
-  { headerName: "Email", field: "email" },
+  {
+    headerName: "First Name",
+    field: "firstName",
+    editable: true,
+    cellInputRenderer: CELL_INPUT_RENDERERS.TEXT_INPUT,
+  },
+  {
+    headerName: "Last Name",
+    field: "lastName",
+    editable: true,
+    cellInputRenderer: CELL_INPUT_RENDERERS.TEXT_INPUT,
+  },
+  {
+    headerName: "Email",
+    field: "email",
+    editable: true,
+    cellInputRenderer: CELL_INPUT_RENDERERS.EMAIL_INPUT,
+  },
   { headerName: "Phone", field: "phone" },
   { headerName: "Department", field: "department" },
   { headerName: "Designation", field: "designation" },
@@ -45,6 +60,8 @@ const DEMO_COLUMNS: ColumnDef<EmployeeRow>[] = [
         maximumFractionDigits: 0,
       }).format(num);
     },
+    editable: true,
+    cellInputRenderer: CELL_INPUT_RENDERERS.NUMBER_INPUT,
   },
   { headerName: "Currency", field: "currency", maxWidth: "110px" },
   { headerName: "Manager", field: "manager" },
