@@ -44,11 +44,15 @@ function resolveCellValue<TData extends Record<string, unknown>>(
  * When `focusedCell` matches this cell’s indices, the wrapper
  * gets `bodyCellFocused` plus base and column-specific classes.
  *
- * ### Double-click
- * Placeholder handler logs row/column indices; inline editing is not implemented yet.
+ * ### Inline editing
+ * When the column is editable (`editable` is `true` or the row-level predicate
+ * returns `true`) and `cellInputRenderer` is set, **double-click** opens the
+ * mapped input (e.g. text). **Enter** or **blur** commits via
+ * `onCellValueChange` if the value changed; **Escape** closes the editor without
+ * committing.
  *
  * @param props - {@link GridCellRendererProps}
- * @returns A cell `<div>` containing the display text span.
+ * @returns A cell `<div>` with either formatted text or the active inline input.
  */
 export default function GridCellRenderer<
   TData extends Record<string, unknown>,
@@ -61,6 +65,7 @@ export default function GridCellRenderer<
   colIndex,
   onFocus,
   onBlur,
+  onCellValueChange,
 }: GridCellRendererProps<TData>) {
   const displayValue = resolveCellValue(columnDef, row);
 
@@ -110,12 +115,21 @@ export default function GridCellRenderer<
     }
   };
 
-  const handleInputBlur = () => {
+  const commitValue = () => {
+    if (editValue !== displayValue) {
+      onCellValueChange(rowIndex, columnDef.field, editValue);
+    }
     setIsEditing(false);
   };
 
+  const handleInputBlur = () => {
+    commitValue();
+  };
+
   const handleInputKeyDown = (e: React.KeyboardEvent<HTMLDivElement>) => {
-    if (e.key === "Escape") {
+    if (e.key === "Enter") {
+      commitValue();
+    } else if (e.key === "Escape") {
       setIsEditing(false);
     }
   };

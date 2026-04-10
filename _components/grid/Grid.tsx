@@ -1,3 +1,6 @@
+"use client";
+
+import { useCallback, useState } from "react";
 import type { GridProps } from "./helpers/types/types";
 import GridHeader from "./grid-header/GridHeader";
 import GridBody from "./grid-body/GridBody";
@@ -25,6 +28,12 @@ import styles from "./grid.module.css";
  * Each cell has `min-width: 200px` and `flex: 1`. When the combined minimum
  * width of all columns exceeds the container width (e.g. 20+ columns), the
  * container scrolls horizontally. No extra configuration is required.
+ *
+ * ## Row state & inline edits
+ * On mount, `rowData` is shallow-cloned into internal state so committing an edit
+ * from a cell updates the grid without mutating the prop array. Consumers still
+ * pass `rowData` as the initial snapshot; the grid does not sync props back into
+ * that state after mount.
  *
  * ## Usage
  * ```tsx
@@ -56,10 +65,29 @@ const Grid = <TData extends Record<string, unknown> = Record<string, unknown>>({
   columnDefs,
   rowData,
 }: GridProps<TData>) => {
+  const [internalRowData, setInternalRowData] = useState<TData[]>(() =>
+    rowData.map((row) => ({ ...row })),
+  );
+
+  const updateCellValue = useCallback(
+    (rowIndex: number, field: string, value: unknown) => {
+      setInternalRowData((prev) =>
+        prev.map((row, i) =>
+          i === rowIndex ? { ...row, [field]: value } : row,
+        ),
+      );
+    },
+    [],
+  );
+
   return (
     <div className={styles.gridContainer} role="table">
       <GridHeader columnDefs={columnDefs} />
-      <GridBody columnDefs={columnDefs} rowData={rowData} />
+      <GridBody
+        columnDefs={columnDefs}
+        rowData={internalRowData}
+        onCellValueChange={updateCellValue}
+      />
     </div>
   );
 };

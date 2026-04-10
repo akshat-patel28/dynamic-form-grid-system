@@ -108,11 +108,17 @@ export interface ColumnDef<
    * valueFormatter: ({ rowData }) => new Date(String(rowData.createdAt)).toLocaleDateString()
    */
   valueFormatter?: (params: { rowData: TData }) => string;
+
+  /**
+   * Whether this column’s cells can enter inline edit mode on double-click.
+   * Use `true` / `false` for all rows, or a function to decide per `rowData`.
+   * Inline editing also requires `cellInputRenderer` on the same column.
+   */
   editable?: boolean | ((params: { rowData: TData }) => boolean);
 
   /**
    * Determines which input component to render inline when a cell is
-   * double-clicked and `editable` is `true`.
+   * double-clicked and `editable` resolves to `true` for that row.
    * Use values from `CELL_INPUT_RENDERERS` to avoid spelling mistakes.
    * When omitted, the cell does not show an inline editor.
    */
@@ -153,6 +159,8 @@ export interface GridProps<
    * Array of row data objects to display.
    * Each object's properties are accessed via the `field` key defined in
    * the corresponding `ColumnDef`. An empty array renders the empty state.
+   * The `Grid` component shallow-clones this array and each row on mount for
+   * internal updates from inline cell editing.
    */
   rowData: TData[];
 }
@@ -173,7 +181,10 @@ export interface FocusedCell {
 export interface GridCellRendererProps<
   TData extends Record<string, unknown> = Record<string, unknown>,
 > {
-  /** Column definition for this cell (field, formatter, width hints, etc.). */
+  /**
+   * Column definition for this cell — field, formatter, sizing, classes,
+   * `editable`, and `cellInputRenderer` for inline editing.
+   */
   columnDef: ColumnDef<TData>;
 
   /**
@@ -202,4 +213,7 @@ export interface GridCellRendererProps<
 
   /** Called when the cell loses focus; parent typically clears the focused-cell state. */
   onBlur: () => void;
+
+  /** Called when the user commits an edited value (blur or Enter). */
+  onCellValueChange: (rowIndex: number, field: string, value: unknown) => void;
 }

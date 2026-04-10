@@ -28,6 +28,9 @@ interface GridBodyProps<
    * instead of a list of rows.
    */
   rowData: TData[];
+
+  /** Called when a cell value is committed after inline editing. */
+  onCellValueChange: (rowIndex: number, field: string, value: unknown) => void;
 }
 
 /**
@@ -50,22 +53,37 @@ interface GridBodyProps<
  * Focus state is lifted here; {@link GridCellRenderer} applies `bodyCellFocused` when
  * indices match so the active cell stays visible for keyboard navigation.
  *
+ * ### Row selection
+ * A column with `checkboxSelection: true` renders a checkbox per row. Toggling it
+ * selects the row (`useRowSelection`) and applies `bodyRowSelected` for highlight.
+ *
+ * ### Toasts
+ * A {@link ToastContainer} is rendered once for the body so cell copy actions
+ * (see {@link GridCellRenderer}) can show transient feedback.
+ *
  * ### Empty state
  * When `rowData` is an empty array a centred "No Records Found" message is
  * rendered spanning the full width of the container.
  *
  * @param props - {@link GridBodyProps}
- * @returns A fragment of row `<div>` elements, or the empty-state message.
+ * @returns The empty-state block, or a fragment of row `<div>` elements plus
+ *   `ToastContainer`.
  *
  * @example
+ * ```tsx
  * <GridBody
  *   columnDefs={[{ headerName: 'Name', field: 'name' }]}
  *   rowData={[{ name: 'Alice' }, { name: 'Bob' }]}
+ *   onCellValueChange={(rowIndex, field, value) => {
+ *     // persist or lift state
+ *   }}
  * />
+ * ```
  */
 const GridBody = <TData extends Record<string, unknown>>({
   columnDefs,
   rowData,
+  onCellValueChange,
 }: GridBodyProps<TData>) => {
   /**
    * Tracks which cell currently has keyboard / pointer focus.
@@ -129,6 +147,7 @@ const GridBody = <TData extends Record<string, unknown>>({
                   colIndex={colIndex}
                   onFocus={() => setFocusedCell({ rowIndex, colIndex })}
                   onBlur={() => setFocusedCell(null)}
+                  onCellValueChange={onCellValueChange}
                 />
               );
             })}
