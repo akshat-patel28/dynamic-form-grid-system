@@ -9,6 +9,7 @@
  */
 
 import type { CSSProperties } from "react";
+import type { CellInputRenderer } from "../constants/cellInputRenderers";
 
 /**
  * Defines the configuration for a single column in the grid.
@@ -108,6 +109,14 @@ export interface ColumnDef<
    */
   valueFormatter?: (params: { rowData: TData }) => string;
   editable?: boolean | ((params: { rowData: TData }) => boolean);
+
+  /**
+   * Determines which input component to render inline when a cell is
+   * double-clicked and `editable` is `true`.
+   * Use values from `CELL_INPUT_RENDERERS` to avoid spelling mistakes.
+   * When omitted, the cell does not show an inline editor.
+   */
+  cellInputRenderer?: CellInputRenderer;
 
   /**
    * When `true`, this column renders a checkbox instead of data.

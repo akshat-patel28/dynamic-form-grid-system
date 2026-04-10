@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { Grid } from "@/_components/grid";
+import { Grid, CELL_INPUT_RENDERERS } from "@/_components/grid";
 import type { ColumnDef } from "@/_components/grid";
 import { PAGE_ROUTE } from "@/helpers/constant/constant";
 import { DEMO_ROWS } from "@/helpers/mock/gridDemoData";
@@ -17,8 +17,8 @@ import type { EmployeeRow } from "@/helpers/mock/gridDemoData";
 const DEMO_COLUMNS: ColumnDef<EmployeeRow>[] = [
   { field: "select", checkboxSelection: true },
   { headerName: "ID", field: "id", maxWidth: "80px" },
-  { headerName: "First Name", field: "firstName" },
-  { headerName: "Last Name", field: "lastName" },
+  { headerName: "First Name", field: "firstName", editable: true, cellInputRenderer: CELL_INPUT_RENDERERS.TEXT_INPUT },
+  { headerName: "Last Name", field: "lastName", editable: true, cellInputRenderer: CELL_INPUT_RENDERERS.TEXT_INPUT },
   { headerName: "Email", field: "email" },
   { headerName: "Phone", field: "phone" },
   { headerName: "Department", field: "department" },

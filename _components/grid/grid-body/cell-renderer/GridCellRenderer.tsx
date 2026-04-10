@@ -1,7 +1,10 @@
 "use client";
 
-import { useCallback } from "react";
+import { useCallback, useRef, useState } from "react";
 import { toast } from "react-toastify";
+import TextInput from "../../../inputs/TextInput";
+import { CELL_INPUT_RENDERERS } from "../../helpers/constants/cellInputRenderers";
+import type { CellInputRenderer } from "../../helpers/constants/cellInputRenderers";
 import type { ColumnDef, GridCellRendererProps } from "../../helpers/types/types";
 import styles from "../../grid.module.css";
 
@@ -61,6 +64,10 @@ export default function GridCellRenderer<
 }: GridCellRendererProps<TData>) {
   const displayValue = resolveCellValue(columnDef, row);
 
+  const [isEditing, setIsEditing] = useState(false);
+  const [editValue, setEditValue] = useState(displayValue);
+  const inputRef = useRef<HTMLInputElement>(null);
+
   const isFocused =
     focusedCell?.rowIndex === rowIndex && focusedCell?.colIndex === colIndex;
 
@@ -76,13 +83,6 @@ export default function GridCellRenderer<
   /**
    * Returns a `keydown` handler for a cell that copies the cell's display
    * value to the clipboard when the user presses Ctrl+C / Cmd+C.
-   *
-   * Implemented as a curried `useCallback` so the factory itself is stable
-   * across renders; each call returns a lightweight closure bound to the
-   * specific `value` string for that cell.
-   *
-   * @param value - The display string already rendered inside the cell.
-   * @returns A `KeyboardEvent` handler for the cell `<div>`.
    */
   const handleCellKeyDown = useCallback(
     (value: string) => (event: React.KeyboardEvent<HTMLDivElement>) => {
@@ -96,6 +96,69 @@ export default function GridCellRenderer<
     [],
   );
 
+  /** Resolve whether the column is editable for this row. */
+  const isEditable =
+    typeof columnDef.editable === "function"
+      ? columnDef.editable({ rowData: row })
+      : !!columnDef.editable;
+
+  const handleDoubleClick = () => {
+    if (isEditable && columnDef.cellInputRenderer) {
+      setEditValue(displayValue);
+      setIsEditing(true);
+      setTimeout(() => inputRef.current?.focus(), 0);
+    }
+  };
+
+  const handleInputBlur = () => {
+    setIsEditing(false);
+  };
+
+  const handleInputKeyDown = (e: React.KeyboardEvent<HTMLDivElement>) => {
+    if (e.key === "Escape") {
+      setIsEditing(false);
+    }
+  };
+
+  /** Map of cellInputRenderer values → JSX factory for that input type. */
+  const cellInputMap: Record<CellInputRenderer, () => React.ReactNode> = {
+    [CELL_INPUT_RENDERERS.TEXT_INPUT]: () => (
+      <TextInput
+        inputRef={inputRef}
+        value={editValue}
+        onChange={(e) => setEditValue(e.target.value)}
+        onBlur={handleInputBlur}
+        onKeyDown={handleInputKeyDown}
+        size="small"
+        variant="outlined"
+        className={styles.cellInput}
+        slotProps={{
+          input: {
+            sx: {
+              height: "100%",
+              padding: 0,
+              fontSize: "14px",
+            },
+          },
+        }}
+        sx={{
+          height: "100%",
+          "& .MuiOutlinedInput-root": {
+            height: "100%",
+          },
+        }}
+      />
+    ),
+  };
+
+  const renderCellContent = () => {
+    if (isEditing && columnDef.cellInputRenderer) {
+      const renderInput = cellInputMap[columnDef.cellInputRenderer];
+      if (renderInput) return renderInput();
+    }
+    return <span className={styles.bodyCellText}>{displayValue}</span>;
+  };
+
   return (
     <div
       className={cellClass}
@@ -106,12 +169,9 @@ export default function GridCellRenderer<
       onFocus={onFocus}
       onBlur={onBlur}
       onKeyDown={handleCellKeyDown(displayValue)}
-      onDoubleClick={() => {
-        // TODO: render the edit field with the value in that field
-        console.log("double click", rowIndex, colIndex);
-      }}
+      onDoubleClick={handleDoubleClick}
     >
-      <span className={styles.bodyCellText}>{displayValue}</span>
+      {renderCellContent()}
     </div>
   );
 }
