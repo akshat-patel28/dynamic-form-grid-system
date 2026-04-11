@@ -116,7 +116,7 @@ export default function GridCellRenderer<
       setIsEditing(true);
       setTimeout(() => inputRef.current?.focus(), 0);
     }
-  }, [isEditable, columnDef.cellInputRenderer, displayValue]);
+  }, [isEditable, columnDef.cellInputRenderer, row, columnDef.field]);
 
   const commitValue = useCallback(() => {
     if (editValue !== displayValue) {
