@@ -50,9 +50,9 @@ function resolveCellValue<TData extends Record<string, unknown>>(
  * ### Inline editing
  * When the column is editable (`editable` is `true` or the row-level predicate
  * returns `true`) and `cellInputRenderer` is set, **double-click** opens the
- * mapped input (e.g. text). **Enter** or **blur** commits via
- * `onCellValueChange` if the value changed; **Escape** closes the editor without
- * committing.
+ * mapped input (text, number, email, or native `type="date"`). **Enter** or
+ * **blur** commits via `onCellValueChange` if the value changed; **Escape**
+ * closes the editor without committing. Date values use `YYYY-MM-DD` strings.
  *
  * @param props - {@link GridCellRendererProps}
  * @returns A cell `<div>` with either formatted text or the active inline input.
@@ -125,12 +125,9 @@ export default function GridCellRenderer<
     setIsEditing(false);
   }, [editValue, displayValue, onCellValueChange, rowIndex, columnDef.field]);
 
-  const handleInputBlur = useCallback(
-    (e: React.FocusEvent<HTMLInputElement>) => {
-      commitValue();
-    },
-    [commitValue],
-  );
+  const handleInputBlur = useCallback(() => {
+    commitValue();
+  }, [commitValue]);
 
   const handleInputKeyDown = useCallback(
     (e: React.KeyboardEvent<HTMLDivElement>) => {
@@ -206,6 +203,21 @@ export default function GridCellRenderer<
         <TextInput
           inputRef={inputRef}
           type="email"
+          value={editValue}
+          onChange={handleInputChange}
+          onBlur={handleInputBlur}
+          onKeyDown={handleInputKeyDown}
+          size="small"
+          variant="outlined"
+          className={styles.cellInput}
+          slotProps={inputSlotProps}
+          sx={inputSx}
+        />
+      ),
+      [CELL_INPUT_RENDERERS.DATE_INPUT]: () => (
+        <TextInput
+          inputRef={inputRef}
+          type="date"
           value={editValue}
           onChange={handleInputChange}
           onBlur={handleInputBlur}
