@@ -10,3 +10,23 @@ export type NavLink = {
   href: PageRoute;
   label: string;
 };
+
+/**
+ * Shape of a single comment from JSONPlaceholder `GET /comments`.
+ */
+export type JsonPlaceholderComment = {
+  id: number;
+  postId: number;
+  name: string;
+  email: string;
+  body: string;
+};
+
+/**
+ * Row passed to the stepper after local transformation.
+ */
+export type CommentFormRow = JsonPlaceholderComment & {
+  rating: number;
+  /** ISO-8601 date (`YYYY-MM-DD`) from `new Date().toISOString().slice(0, 10)`. */
+  createdAt: string;
+};
