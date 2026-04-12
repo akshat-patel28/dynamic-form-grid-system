@@ -22,7 +22,7 @@ import Skeleton from "@mui/material/Skeleton";
 import { PAGE_ROUTE } from "@/helpers/constant/constant";
 import { useApi } from "@/helpers/hooks/useApi";
 import type { CommentFormRow, JsonPlaceholderComment } from "@/helpers/types/types";
-import { transformComments } from "@/helpers/utils/utils";
+import { todayDateStringLocal, transformComments } from "@/helpers/utils/utils";
 import DataPagination from "@/_components/pagination";
 import { CELL_INPUT_RENDERERS } from "@/_components/grid";
 import StepperForm from "@/_components/stepper-form";
@@ -68,6 +68,30 @@ const COMMENT_FIELDS: FormFieldDef<CommentFormRow>[] = [
 
 const commentValidationSchema = Yup.object({
   name: Yup.string().required("Name is required"),
+  email: Yup.string()
+    .required("Email is required")
+    .email("Enter a valid email address"),
+  body: Yup.string()
+    .required("Body is required")
+    .max(300, "Body must be at most 300 characters"),
+  rating: Yup.number()
+    .transform((value, originalValue) =>
+      originalValue === "" || originalValue == null ? NaN : Number(value),
+    )
+    .typeError("Rating must be a number")
+    .min(1, "Rating must be at least 1")
+    .max(5, "Rating must not be more than 5")
+    .required("Rating is required"),
+  createdAt: Yup.string()
+    .required("Created at is required")
+    .test(
+      "not-after-today",
+      "Date cannot be after today",
+      (value) => {
+        if (!value) return false;
+        return value <= todayDateStringLocal();
+      },
+    ),
 });
 
 /**
