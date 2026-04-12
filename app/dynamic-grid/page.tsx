@@ -36,8 +36,18 @@ const DEMO_COLUMNS: ColumnDef<EmployeeRow>[] = [
     cellInputRenderer: CELL_INPUT_RENDERERS.EMAIL_INPUT,
   },
   { headerName: "Phone", field: "phone" },
-  { headerName: "Department", field: "department" },
-  { headerName: "Designation", field: "designation" },
+  {
+    headerName: "Department",
+    field: "department",
+    editable: true,
+    cellInputRenderer: CELL_INPUT_RENDERERS.TEXT_INPUT,
+  },
+  {
+    headerName: "Designation",
+    field: "designation",
+    editable: true,
+    cellInputRenderer: CELL_INPUT_RENDERERS.TEXT_INPUT,
+  },
   { headerName: "Employee Code", field: "employeeCode", maxWidth: "160px" },
   {
     headerName: "Date of Join",
@@ -46,12 +56,37 @@ const DEMO_COLUMNS: ColumnDef<EmployeeRow>[] = [
     editable: true,
     cellInputRenderer: CELL_INPUT_RENDERERS.DATE_INPUT,
   },
-  { headerName: "Date of Birth", field: "dateOfBirth" },
+  {
+    headerName: "Date of Birth",
+    field: "dateOfBirth",
+    editable: true,
+    cellInputRenderer: CELL_INPUT_RENDERERS.DATE_INPUT,
+  },
   { headerName: "Gender", field: "gender", maxWidth: "110px" },
-  { headerName: "Location", field: "location" },
-  { headerName: "City", field: "city" },
-  { headerName: "State", field: "state" },
-  { headerName: "Country", field: "country" },
+  {
+    headerName: "Location",
+    field: "location",
+    editable: true,
+    cellInputRenderer: CELL_INPUT_RENDERERS.TEXT_INPUT,
+  },
+  {
+    headerName: "City",
+    field: "city",
+    editable: true,
+    cellInputRenderer: CELL_INPUT_RENDERERS.TEXT_INPUT,
+  },
+  {
+    headerName: "State",
+    field: "state",
+    editable: true,
+    cellInputRenderer: CELL_INPUT_RENDERERS.TEXT_INPUT,
+  },
+  {
+    headerName: "Country",
+    field: "country",
+    editable: true,
+    cellInputRenderer: CELL_INPUT_RENDERERS.TEXT_INPUT,
+  },
   { headerName: "Pincode", field: "pincode", maxWidth: "130px" },
   {
     headerName: "Salary",
@@ -76,11 +111,25 @@ const DEMO_COLUMNS: ColumnDef<EmployeeRow>[] = [
   { headerName: "Currency", field: "currency", maxWidth: "110px" },
   { headerName: "Manager", field: "manager" },
   { headerName: "Team", field: "team" },
-  { headerName: "Status", field: "status", maxWidth: "120px" },
+  {
+    headerName: "Status",
+    field: "status",
+    maxWidth: "160px",
+    editable: true,
+    cellInputRenderer: CELL_INPUT_RENDERERS.DROPDOWN_INPUT,
+    cellInputOptions: [
+      { value: "Active", label: "Active" },
+      { value: "Inactive", label: "Inactive" },
+      { value: "On Leave", label: "On Leave" },
+      { value: "Terminated", label: "Terminated" },
+    ],
+  },
   { headerName: "Last Updated", field: "lastUpdated" },
   {
     headerName: "Enabled",
     field: "enabled",
+    editable: true,
+    cellInputRenderer: CELL_INPUT_RENDERERS.SWITCH_INPUT,
     valueFormatter: ({ rowData }) => (rowData.enabled ? "Enabled" : "Disabled"),
   },
 ];
@@ -127,7 +176,15 @@ export default function DynamicGridPage() {
         22 columns · 50 rows · horizontal + vertical scroll
       </p>
 
-      <Grid columnDefs={DEMO_COLUMNS} rowData={DEMO_ROWS} />
+      <Grid
+        columnDefs={DEMO_COLUMNS}
+        rowData={DEMO_ROWS}
+        onCellValueChanged={({ field, oldValue, newValue }) => {
+          console.log(
+            `Cell value changed — field: "${field}", old: ${JSON.stringify(oldValue)}, new: ${JSON.stringify(newValue)}`,
+          );
+        }}
+      />
     </main>
   );
 }

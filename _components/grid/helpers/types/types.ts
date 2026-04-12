@@ -10,6 +10,7 @@
 
 import type { CSSProperties } from "react";
 import type { CellInputRenderer } from "../constants/cellInputRenderers";
+import type { DropdownOption } from "../../../inputs/DropdownInput";
 
 /**
  * Defines the configuration for a single column in the grid.
@@ -125,6 +126,18 @@ export interface ColumnDef<
   cellInputRenderer?: CellInputRenderer;
 
   /**
+   * List of selectable options for dropdown-based inline editors.
+   * Required when `cellInputRenderer` is `CELL_INPUT_RENDERERS.DROPDOWN_INPUT`.
+   *
+   * @example
+   * cellInputOptions: [
+   *   { value: "active", label: "Active" },
+   *   { value: "inactive", label: "Inactive" },
+   * ]
+   */
+  cellInputOptions?: DropdownOption[];
+
+  /**
    * When `true`, this column renders a checkbox instead of data.
    * Checking the checkbox highlights the entire row.
    * Only one column in the array should have this enabled.
@@ -146,6 +159,36 @@ export interface ColumnDef<
  *   rowData: [{ id: 1, name: 'Alice', department: 'Engineering' }],
  * };
  */
+/**
+ * Payload passed to `onCellValueChanged` after a cell value is committed.
+ *
+ * @template TData Shape of a single row data object.
+ */
+export interface OnCellValueChangedParams<
+  TData extends Record<string, unknown> = Record<string, unknown>,
+> {
+  /** Zero-based row index of the changed cell. */
+  rowIndex: number;
+
+  /** Column field key whose value changed. */
+  field: string;
+
+  /** Value before the edit. */
+  oldValue: unknown;
+
+  /** Newly committed value. */
+  newValue: unknown;
+
+  /** Snapshot of the full row data *before* the edit was applied. */
+  rowData: TData;
+
+  /**
+   * Call this to revert the cell back to `oldValue` in the grid's internal
+   * state — useful when an API call fails after an optimistic local update.
+   */
+  revert: () => void;
+}
+
 export interface GridProps<
   TData extends Record<string, unknown> = Record<string, unknown>,
 > {
@@ -163,6 +206,13 @@ export interface GridProps<
    * internal updates from inline cell editing.
    */
   rowData: TData[];
+
+  /**
+   * Fires after a cell value is committed locally (on blur or Enter).
+   * Receives the old value, new value, and a `revert` callback to roll back
+   * the change — typically called when a subsequent API save fails.
+   */
+  onCellValueChanged?: (params: OnCellValueChangedParams<TData>) => void;
 }
 
 /**

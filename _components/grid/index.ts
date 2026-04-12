@@ -21,4 +21,6 @@ export type {
   FocusedCell,
   GridCellRendererProps,
   GridProps,
+  OnCellValueChangedParams,
 } from "./helpers/types/types";
+export type { DropdownOption } from "../inputs/DropdownInput";

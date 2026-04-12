@@ -2,7 +2,16 @@
 
 import { useCallback, useMemo, useRef, useState } from "react";
 import { toast } from "react-toastify";
-import TextInput from "../../../inputs/TextInput";
+import dynamic from "next/dynamic";
+const DropdownInput = dynamic(() => import("../../../inputs/DropdownInput"), {
+  ssr: false,
+});
+const SwitchInput = dynamic(() => import("../../../inputs/SwitchInput"), {
+  ssr: false,
+});
+const TextInput = dynamic(() => import("../../../inputs/TextInput"), {
+  ssr: false,
+});
 import { CELL_INPUT_RENDERERS } from "../../helpers/constants/cellInputRenderers";
 import type { CellInputRenderer } from "../../helpers/constants/cellInputRenderers";
 import type {
@@ -147,6 +156,24 @@ export default function GridCellRenderer<
     [],
   );
 
+  const handleSwitchToggle = useCallback(
+    (_e: React.ChangeEvent<HTMLInputElement>, checked: boolean) => {
+      setEditValue(checked);
+      onCellValueChange(rowIndex, columnDef.field, checked);
+    },
+    [onCellValueChange, rowIndex, columnDef.field],
+  );
+
+  const handleDropdownChange = useCallback(
+    (e: { target: { value: unknown } }) => {
+      const val = e.target.value;
+      setEditValue(val);
+      onCellValueChange(rowIndex, columnDef.field, val);
+      setIsEditing(false);
+    },
+    [onCellValueChange, rowIndex, columnDef.field],
+  );
+
   /** Shared MUI sx props reused by every TextInput variant. */
   const inputSx = useMemo(
     () => ({
@@ -245,24 +272,60 @@ export default function GridCellRenderer<
           sx={inputSx}
         />
       ),
+      [CELL_INPUT_RENDERERS.SWITCH_INPUT]: () => (
+        <SwitchInput
+          checked={!!editValue}
+          onChange={handleSwitchToggle}
+          size="small"
+        />
+      ),
+      [CELL_INPUT_RENDERERS.DROPDOWN_INPUT]: () => (
+        <DropdownInput
+          value={editValue ?? ""}
+          onChange={handleDropdownChange}
+          onClose={() => setIsEditing(false)}
+          options={columnDef.cellInputOptions ?? []}
+          size="small"
+          open
+          className={styles.cellInput}
+          sx={inputSx}
+        />
+      ),
     }),
     [
       editValue,
       handleInputChange,
       handleInputBlur,
       handleInputKeyDown,
+      handleSwitchToggle,
+      handleDropdownChange,
+      columnDef.cellInputOptions,
       inputSlotProps,
       inputSx,
     ],
   );
 
+  const isAlwaysVisible =
+    columnDef.cellInputRenderer === CELL_INPUT_RENDERERS.SWITCH_INPUT;
+
   const cellContent = useMemo(() => {
+    if (isAlwaysVisible && isEditable && columnDef.cellInputRenderer) {
+      const renderInput = cellInputMap[columnDef.cellInputRenderer];
+      if (renderInput) return renderInput();
+    }
     if (isEditing && columnDef.cellInputRenderer) {
       const renderInput = cellInputMap[columnDef.cellInputRenderer];
       if (renderInput) return renderInput();
     }
     return <span className={styles.bodyCellText}>{displayValue}</span>;
-  }, [isEditing, columnDef.cellInputRenderer, cellInputMap, displayValue]);
+  }, [
+    isAlwaysVisible,
+    isEditable,
+    isEditing,
+    columnDef.cellInputRenderer,
+    cellInputMap,
+    displayValue,
+  ]);
 
   return (
     <div

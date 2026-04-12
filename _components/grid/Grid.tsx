@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import type { GridProps } from "./helpers/types/types";
 import GridHeader from "./grid-header/GridHeader";
 import GridBody from "./grid-body/GridBody";
@@ -64,18 +64,51 @@ import styles from "./grid.module.css";
 const Grid = <TData extends Record<string, unknown> = Record<string, unknown>>({
   columnDefs,
   rowData,
+  onCellValueChanged,
 }: GridProps<TData>) => {
   const [internalRowData, setInternalRowData] = useState<TData[]>(() =>
     rowData.map((row) => ({ ...row })),
   );
 
+  const rowDataRef = useRef(internalRowData);
+  const onCellValueChangedRef = useRef(onCellValueChanged);
+
+  useEffect(() => {
+    rowDataRef.current = internalRowData;
+  }, [internalRowData]);
+
+  useEffect(() => {
+    onCellValueChangedRef.current = onCellValueChanged;
+  }, [onCellValueChanged]);
+
   const updateCellValue = useCallback(
     (rowIndex: number, field: string, value: unknown) => {
+      const currentRow = rowDataRef.current[rowIndex];
+      const oldValue = currentRow?.[field];
+
       setInternalRowData((prev) =>
         prev.map((row, i) =>
           i === rowIndex ? { ...row, [field]: value } : row,
         ),
       );
+
+      if (onCellValueChangedRef.current && currentRow) {
+        const revert = () => {
+          setInternalRowData((prev) =>
+            prev.map((row, i) =>
+              i === rowIndex ? { ...row, [field]: oldValue } : row,
+            ),
+          );
+        };
+        onCellValueChangedRef.current({
+          rowIndex,
+          field,
+          oldValue,
+          newValue: value,
+          rowData: currentRow,
+          revert,
+        });
+      }
     },
     [],
   );
