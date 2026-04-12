@@ -27,5 +27,3 @@ export type { RadioInputProps, RadioOption } from "./RadioInput";
 export { default as SwitchInput } from "./SwitchInput";
 export type { SwitchInputProps } from "./SwitchInput";
 
-export { default as DatePickerInput } from "./DatePickerInput";
-export type { DatePickerInputProps } from "./DatePickerInput";
