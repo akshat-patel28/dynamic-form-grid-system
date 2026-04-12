@@ -1,62 +1,111 @@
 /**
- * @fileoverview Maps `CellInputRenderer` identifiers to the corresponding
- * HTML input `type` attribute used by MUI `<TextField />`.
+ * @fileoverview Maps `CellInputRenderer` identifiers to dynamically imported
+ * input components from `@/_components/inputs`.
  *
- * This utility is the form-side equivalent of the grid's cell-renderer
- * switch. It keeps the mapping in one place so that `StepperFormFields`
- * does not need to know about individual renderer strings.
- *
- * @example
- * import { getInputType } from './fieldRendererMap';
- * const type = getInputType('numberInput'); // "number"
+ * Each component is wrapped with `next/dynamic` so its code is only
+ * downloaded when it is actually rendered — unused input types add zero
+ * bytes to the initial bundle.
  */
+
+import dynamic from "next/dynamic";
+import type { ElementType } from "react";
 
 import {
   CELL_INPUT_RENDERERS,
   type CellInputRenderer,
 } from "@/_components/grid/helpers/constants/cellInputRenderers";
 
-/**
- * Lookup table from `CellInputRenderer` value to HTML input `type`.
- *
- * | Renderer key      | HTML type  |
- * |------------------|------------|
- * | `"textInput"` | `"text"`   |
- * | `"textareaInput"` | `"text"`   |
- * | `"numberInput"`   | `"number"` |
- * | `"emailInput"`    | `"email"`  |
- * | `"dateInput"`     | `"date"`   |
- */
-const RENDERER_TO_INPUT_TYPE: Record<CellInputRenderer, string> = {
-  textInput: "text",
-  textareaInput: "text",
-  numberInput: "number",
-  emailInput: "email",
-  dateInput: "date",
-};
+const DynamicTextInput = dynamic(
+  () => import("@/_components/inputs/TextInput"),
+);
+const DynamicTextAreaInput = dynamic(
+  () => import("@/_components/inputs/TextAreaInput"),
+);
+const DynamicDropdownInput = dynamic(
+  () => import("@/_components/inputs/DropdownInput"),
+);
+const DynamicCheckboxInput = dynamic(
+  () => import("@/_components/inputs/CheckboxInput"),
+);
+const DynamicRadioInput = dynamic(
+  () => import("@/_components/inputs/RadioInput"),
+);
+const DynamicSwitchInput = dynamic(
+  () => import("@/_components/inputs/SwitchInput"),
+);
 
 /**
- * Resolves the HTML input `type` for a given `CellInputRenderer` identifier.
+ * Resolved entry returned by {@link resolveRenderer}.
  *
- * @param renderer - One of the `CellInputRenderer` string values, or
- *   `undefined` when the field definition omits `inputRenderer`.
- * @returns The corresponding HTML input `type` string.
- *   Defaults to `"text"` when `renderer` is `undefined` or unrecognised.
- *
- * @example
- * getInputType('emailInput');  // "email"
- * getInputType(undefined);     // "text"
+ * `Component` is the lazily-loaded React component and `group` classifies
+ * the renderer so the caller can build the right prop bag.
  */
-export function getInputType(renderer: CellInputRenderer | undefined): string {
-  if (!renderer) return "text";
-  return RENDERER_TO_INPUT_TYPE[renderer] ?? "text";
+export interface RendererEntry {
+  Component: ElementType;
+  group:
+    | "text"
+    | "textarea"
+    | "dropdown"
+    | "checkbox"
+    | "radio"
+    | "switch";
+  htmlInputType?: string;
 }
 
+const RENDERER_MAP: Record<CellInputRenderer, RendererEntry> = {
+  [CELL_INPUT_RENDERERS.TEXT_INPUT]: {
+    Component: DynamicTextInput,
+    group: "text",
+    htmlInputType: "text",
+  },
+  [CELL_INPUT_RENDERERS.NUMBER_INPUT]: {
+    Component: DynamicTextInput,
+    group: "text",
+    htmlInputType: "number",
+  },
+  [CELL_INPUT_RENDERERS.EMAIL_INPUT]: {
+    Component: DynamicTextInput,
+    group: "text",
+    htmlInputType: "email",
+  },
+  [CELL_INPUT_RENDERERS.TEXTAREA_INPUT]: {
+    Component: DynamicTextAreaInput,
+    group: "textarea",
+  },
+  [CELL_INPUT_RENDERERS.DATE_INPUT]: {
+    Component: DynamicTextInput,
+    group: "text",
+    htmlInputType: "date",
+  },
+  [CELL_INPUT_RENDERERS.DROPDOWN_INPUT]: {
+    Component: DynamicDropdownInput,
+    group: "dropdown",
+  },
+  [CELL_INPUT_RENDERERS.CHECKBOX_INPUT]: {
+    Component: DynamicCheckboxInput,
+    group: "checkbox",
+  },
+  [CELL_INPUT_RENDERERS.RADIO_INPUT]: {
+    Component: DynamicRadioInput,
+    group: "radio",
+  },
+  [CELL_INPUT_RENDERERS.SWITCH_INPUT]: {
+    Component: DynamicSwitchInput,
+    group: "switch",
+  },
+};
+
+const DEFAULT_ENTRY: RendererEntry =
+  RENDERER_MAP[CELL_INPUT_RENDERERS.TEXT_INPUT];
+
 /**
- * Whether the renderer should use a multiline MUI `TextField` (`textarea`).
+ * Returns the dynamically-imported component and metadata for a given
+ * renderer identifier. Falls back to {@link DynamicTextInput} when
+ * `renderer` is `undefined` or unrecognised.
  */
-export function isTextareaRenderer(
+export function resolveRenderer(
   renderer: CellInputRenderer | undefined,
-): boolean {
-  return renderer === CELL_INPUT_RENDERERS.TEXTAREA_INPUT;
+): RendererEntry {
+  if (!renderer) return DEFAULT_ENTRY;
+  return RENDERER_MAP[renderer] ?? DEFAULT_ENTRY;
 }

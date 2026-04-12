@@ -14,6 +14,10 @@ export const CELL_INPUT_RENDERERS = {
   NUMBER_INPUT: "numberInput",
   EMAIL_INPUT: "emailInput",
   DATE_INPUT: "dateInput",
+  DROPDOWN_INPUT: "dropdownInput",
+  CHECKBOX_INPUT: "checkboxInput",
+  RADIO_INPUT: "radioInput",
+  SWITCH_INPUT: "switchInput",
 } as const;
 
 /** Union of all supported cell-input renderer string values. */

@@ -65,13 +65,22 @@ export interface FormFieldDef<
   editable?: boolean | ((params: { rowData: TData }) => boolean);
 
   /**
-   * Determines which MUI input variant to render for this field.
-   * Uses the same `CellInputRenderer` union as the grid's `ColumnDef`:
-   * `"textInput"` | `"textareaInput"` | `"numberInput"` | `"emailInput"` | `"dateInput"`.
+   * Determines which input component to render for this field.
+   * Uses the same `CellInputRenderer` union as the grid's `ColumnDef`.
    *
    * When omitted, defaults to `"textInput"`.
    */
   inputRenderer?: CellInputRenderer;
+
+  /**
+   * Selectable options for `"dropdownInput"` and `"radioInput"` renderers.
+   * Ignored for all other renderer types.
+   */
+  options?: Array<{
+    value: string | number;
+    label: string;
+    disabled?: boolean;
+  }>;
 }
 
 /**

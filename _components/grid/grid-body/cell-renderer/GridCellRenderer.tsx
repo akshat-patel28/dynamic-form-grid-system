@@ -167,7 +167,7 @@ export default function GridCellRenderer<
 
   /** Map of cellInputRenderer values → JSX factory for that input type. */
   const cellInputMap = useMemo<
-    Record<CellInputRenderer, () => React.ReactNode>
+    Partial<Record<CellInputRenderer, () => React.ReactNode>>
   >(
     () => ({
       [CELL_INPUT_RENDERERS.TEXT_INPUT]: () => (

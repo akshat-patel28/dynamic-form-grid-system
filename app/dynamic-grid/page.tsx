@@ -78,6 +78,11 @@ const DEMO_COLUMNS: ColumnDef<EmployeeRow>[] = [
   { headerName: "Team", field: "team" },
   { headerName: "Status", field: "status", maxWidth: "120px" },
   { headerName: "Last Updated", field: "lastUpdated" },
+  {
+    headerName: "Enabled",
+    field: "enabled",
+    valueFormatter: ({ rowData }) => (rowData.enabled ? "Enabled" : "Disabled"),
+  },
 ];
 
 /**
