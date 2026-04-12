@@ -34,6 +34,7 @@ export interface EmployeeRow {
   team: string;
   status: string;
   lastUpdated: string;
+  enabled: boolean;
 }
 
 /**
@@ -66,6 +67,7 @@ export const DEMO_ROWS: EmployeeRow[] = [
     team: "Platform",
     status: "Active",
     lastUpdated: "2024-11-01",
+    enabled: true,
   },
   {
     id: 2,
@@ -90,6 +92,7 @@ export const DEMO_ROWS: EmployeeRow[] = [
     team: "Platform",
     status: "Active",
     lastUpdated: "2024-10-20",
+    enabled: true,
   },
   {
     id: 3,
@@ -114,6 +117,7 @@ export const DEMO_ROWS: EmployeeRow[] = [
     team: "Leadership",
     status: "Active",
     lastUpdated: "2024-12-01",
+    enabled: true,
   },
   {
     id: 4,
@@ -138,6 +142,7 @@ export const DEMO_ROWS: EmployeeRow[] = [
     team: "C-Suite",
     status: "Active",
     lastUpdated: "2025-01-15",
+    enabled: true,
   },
   {
     id: 5,
@@ -162,6 +167,7 @@ export const DEMO_ROWS: EmployeeRow[] = [
     team: "Design System",
     status: "Active",
     lastUpdated: "2024-09-30",
+    enabled: true,
   },
   {
     id: 6,
@@ -186,6 +192,7 @@ export const DEMO_ROWS: EmployeeRow[] = [
     team: "Enterprise Sales",
     status: "Active",
     lastUpdated: "2025-02-10",
+    enabled: true,
   },
   {
     id: 7,
@@ -210,6 +217,7 @@ export const DEMO_ROWS: EmployeeRow[] = [
     team: "Growth",
     status: "Active",
     lastUpdated: "2025-03-01",
+    enabled: true,
   },
   {
     id: 8,
@@ -234,6 +242,7 @@ export const DEMO_ROWS: EmployeeRow[] = [
     team: "Finance",
     status: "On Leave",
     lastUpdated: "2024-08-22",
+    enabled: false,
   },
   {
     id: 9,
@@ -258,6 +267,7 @@ export const DEMO_ROWS: EmployeeRow[] = [
     team: "People Ops",
     status: "Active",
     lastUpdated: "2025-01-20",
+    enabled: true,
   },
   {
     id: 10,
@@ -282,6 +292,7 @@ export const DEMO_ROWS: EmployeeRow[] = [
     team: "Platform",
     status: "Active",
     lastUpdated: "2025-02-28",
+    enabled: true,
   },
   {
     id: 11,
@@ -306,6 +317,7 @@ export const DEMO_ROWS: EmployeeRow[] = [
     team: "EMEA Sales",
     status: "Active",
     lastUpdated: "2024-07-15",
+    enabled: true,
   },
   {
     id: 12,
@@ -330,6 +342,7 @@ export const DEMO_ROWS: EmployeeRow[] = [
     team: "Infrastructure",
     status: "Active",
     lastUpdated: "2025-01-05",
+    enabled: true,
   },
   {
     id: 13,
@@ -354,6 +367,7 @@ export const DEMO_ROWS: EmployeeRow[] = [
     team: "Design System",
     status: "Active",
     lastUpdated: "2024-11-30",
+    enabled: true,
   },
   {
     id: 14,
@@ -378,6 +392,7 @@ export const DEMO_ROWS: EmployeeRow[] = [
     team: "Consumer Apps",
     status: "Active",
     lastUpdated: "2025-03-10",
+    enabled: true,
   },
   {
     id: 15,
@@ -402,6 +417,7 @@ export const DEMO_ROWS: EmployeeRow[] = [
     team: "Finance",
     status: "Active",
     lastUpdated: "2024-06-18",
+    enabled: true,
   },
   {
     id: 16,
@@ -426,6 +442,7 @@ export const DEMO_ROWS: EmployeeRow[] = [
     team: "B2B Product",
     status: "Active",
     lastUpdated: "2025-02-01",
+    enabled: true,
   },
   {
     id: 17,
@@ -450,6 +467,7 @@ export const DEMO_ROWS: EmployeeRow[] = [
     team: "Growth",
     status: "Active",
     lastUpdated: "2025-01-22",
+    enabled: true,
   },
   {
     id: 18,
@@ -474,6 +492,7 @@ export const DEMO_ROWS: EmployeeRow[] = [
     team: "Data Platform",
     status: "Active",
     lastUpdated: "2024-10-05",
+    enabled: true,
   },
   {
     id: 19,
@@ -498,6 +517,7 @@ export const DEMO_ROWS: EmployeeRow[] = [
     team: "People Ops",
     status: "Active",
     lastUpdated: "2025-03-05",
+    enabled: true,
   },
   {
     id: 20,
@@ -522,6 +542,7 @@ export const DEMO_ROWS: EmployeeRow[] = [
     team: "Consumer Apps",
     status: "Active",
     lastUpdated: "2025-02-20",
+    enabled: true,
   },
   {
     id: 21,
@@ -546,6 +567,7 @@ export const DEMO_ROWS: EmployeeRow[] = [
     team: "Enterprise Sales",
     status: "Active",
     lastUpdated: "2025-01-30",
+    enabled: true,
   },
   {
     id: 22,
@@ -570,6 +592,7 @@ export const DEMO_ROWS: EmployeeRow[] = [
     team: "Quality",
     status: "Active",
     lastUpdated: "2024-12-15",
+    enabled: true,
   },
   {
     id: 23,
@@ -594,6 +617,7 @@ export const DEMO_ROWS: EmployeeRow[] = [
     team: "Finance",
     status: "Active",
     lastUpdated: "2025-01-10",
+    enabled: true,
   },
   {
     id: 24,
@@ -618,6 +642,7 @@ export const DEMO_ROWS: EmployeeRow[] = [
     team: "Data Platform",
     status: "Active",
     lastUpdated: "2024-09-12",
+    enabled: true,
   },
   {
     id: 25,
@@ -642,6 +667,7 @@ export const DEMO_ROWS: EmployeeRow[] = [
     team: "Design System",
     status: "Active",
     lastUpdated: "2025-02-05",
+    enabled: true,
   },
   {
     id: 26,
@@ -666,6 +692,7 @@ export const DEMO_ROWS: EmployeeRow[] = [
     team: "B2B Product",
     status: "Active",
     lastUpdated: "2025-01-28",
+    enabled: true,
   },
   {
     id: 27,
@@ -690,6 +717,7 @@ export const DEMO_ROWS: EmployeeRow[] = [
     team: "Global Ops",
     status: "Active",
     lastUpdated: "2025-03-08",
+    enabled: true,
   },
   {
     id: 28,
@@ -714,6 +742,7 @@ export const DEMO_ROWS: EmployeeRow[] = [
     team: "Growth",
     status: "Active",
     lastUpdated: "2024-08-30",
+    enabled: true,
   },
   {
     id: 29,
@@ -738,6 +767,7 @@ export const DEMO_ROWS: EmployeeRow[] = [
     team: "Finance",
     status: "On Leave",
     lastUpdated: "2024-05-14",
+    enabled: false,
   },
   {
     id: 30,
@@ -762,6 +792,7 @@ export const DEMO_ROWS: EmployeeRow[] = [
     team: "LATAM Sales",
     status: "Active",
     lastUpdated: "2025-02-12",
+    enabled: true,
   },
   {
     id: 31,
@@ -786,6 +817,7 @@ export const DEMO_ROWS: EmployeeRow[] = [
     team: "People Ops",
     status: "Active",
     lastUpdated: "2025-01-18",
+    enabled: true,
   },
   {
     id: 32,
@@ -810,6 +842,7 @@ export const DEMO_ROWS: EmployeeRow[] = [
     team: "Infrastructure",
     status: "Active",
     lastUpdated: "2024-11-11",
+    enabled: true,
   },
   {
     id: 33,
@@ -834,6 +867,7 @@ export const DEMO_ROWS: EmployeeRow[] = [
     team: "Brand",
     status: "Active",
     lastUpdated: "2025-03-01",
+    enabled: true,
   },
   {
     id: 34,
@@ -858,6 +892,7 @@ export const DEMO_ROWS: EmployeeRow[] = [
     team: "Infrastructure",
     status: "Active",
     lastUpdated: "2024-12-20",
+    enabled: true,
   },
   {
     id: 35,
@@ -882,6 +917,7 @@ export const DEMO_ROWS: EmployeeRow[] = [
     team: "Growth PM",
     status: "Active",
     lastUpdated: "2025-02-25",
+    enabled: true,
   },
   {
     id: 36,
@@ -906,6 +942,7 @@ export const DEMO_ROWS: EmployeeRow[] = [
     team: "EMEA Sales",
     status: "Active",
     lastUpdated: "2024-10-01",
+    enabled: true,
   },
   {
     id: 37,
@@ -930,6 +967,7 @@ export const DEMO_ROWS: EmployeeRow[] = [
     team: "People Ops",
     status: "Active",
     lastUpdated: "2025-01-05",
+    enabled: true,
   },
   {
     id: 38,
@@ -954,6 +992,7 @@ export const DEMO_ROWS: EmployeeRow[] = [
     team: "Infrastructure",
     status: "Active",
     lastUpdated: "2025-02-18",
+    enabled: true,
   },
   {
     id: 39,
@@ -978,6 +1017,7 @@ export const DEMO_ROWS: EmployeeRow[] = [
     team: "Finance",
     status: "Active",
     lastUpdated: "2024-09-22",
+    enabled: true,
   },
   {
     id: 40,
@@ -1002,6 +1042,7 @@ export const DEMO_ROWS: EmployeeRow[] = [
     team: "IoT Platform",
     status: "Active",
     lastUpdated: "2024-07-30",
+    enabled: true,
   },
   {
     id: 41,
@@ -1026,6 +1067,7 @@ export const DEMO_ROWS: EmployeeRow[] = [
     team: "Global Ops",
     status: "Active",
     lastUpdated: "2025-03-12",
+    enabled: true,
   },
   {
     id: 42,
@@ -1050,6 +1092,7 @@ export const DEMO_ROWS: EmployeeRow[] = [
     team: "Growth PM",
     status: "Active",
     lastUpdated: "2025-02-14",
+    enabled: true,
   },
   {
     id: 43,
@@ -1074,6 +1117,7 @@ export const DEMO_ROWS: EmployeeRow[] = [
     team: "Brand",
     status: "Active",
     lastUpdated: "2025-01-08",
+    enabled: true,
   },
   {
     id: 44,
@@ -1098,6 +1142,7 @@ export const DEMO_ROWS: EmployeeRow[] = [
     team: "Growth",
     status: "Active",
     lastUpdated: "2024-10-17",
+    enabled: true,
   },
   {
     id: 45,
@@ -1122,6 +1167,7 @@ export const DEMO_ROWS: EmployeeRow[] = [
     team: "Data Platform",
     status: "Active",
     lastUpdated: "2024-12-03",
+    enabled: true,
   },
   {
     id: 46,
@@ -1146,6 +1192,7 @@ export const DEMO_ROWS: EmployeeRow[] = [
     team: "People Ops",
     status: "On Leave",
     lastUpdated: "2024-08-10",
+    enabled: false,
   },
   {
     id: 47,
@@ -1170,6 +1217,7 @@ export const DEMO_ROWS: EmployeeRow[] = [
     team: "Finance",
     status: "Active",
     lastUpdated: "2025-02-22",
+    enabled: true,
   },
   {
     id: 48,
@@ -1194,6 +1242,7 @@ export const DEMO_ROWS: EmployeeRow[] = [
     team: "Consumer Apps",
     status: "Active",
     lastUpdated: "2025-01-16",
+    enabled: true,
   },
   {
     id: 49,
@@ -1218,6 +1267,7 @@ export const DEMO_ROWS: EmployeeRow[] = [
     team: "Global Ops",
     status: "Active",
     lastUpdated: "2024-11-25",
+    enabled: true,
   },
   {
     id: 50,
@@ -1242,5 +1292,6 @@ export const DEMO_ROWS: EmployeeRow[] = [
     team: "B2B Product",
     status: "Active",
     lastUpdated: "2025-03-15",
+    enabled: true,
   },
 ];
