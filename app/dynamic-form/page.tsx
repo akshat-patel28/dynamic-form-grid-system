@@ -19,6 +19,8 @@
 
 import { useMemo, useState } from "react";
 import Link from "next/link";
+import Box from "@mui/material/Box";
+import Skeleton from "@mui/material/Skeleton";
 import { PAGE_ROUTE } from "@/helpers/constant/constant";
 import { useApi } from "@/helpers/hooks/useApi";
 import DataPagination from "@/_components/pagination";
@@ -167,7 +169,47 @@ export default function DynamicFormPage() {
         — one person per step
       </p>
 
-      {loading && <p style={{ fontSize: "0.875rem" }}>Loading&hellip;</p>}
+      {loading && (
+        <Box
+          component="section"
+          aria-busy="true"
+          aria-label="Loading people"
+          sx={{ width: "100%" }}
+        >
+          {/* Match StepperForm Typography subtitle2 + mb: 2 */}
+          <Skeleton variant="text" width={200} sx={{ fontSize: "0.875rem", mb: 2 }} />
+          {/* Match StepperPagination: small IconButtons + small TextField, mb: 3 */}
+          <Box
+            sx={{
+              display: "flex",
+              flexWrap: "wrap",
+              alignItems: "center",
+              justifyContent: "center",
+              gap: 1,
+              mb: 3,
+            }}
+          >
+            <Skeleton variant="rounded" width={30} height={30} />
+            <Skeleton variant="rounded" width={30} height={30} />
+            <Skeleton variant="text" width={72} sx={{ fontSize: "0.8125rem" }} />
+            <Skeleton variant="rounded" width={30} height={30} />
+            <Skeleton variant="rounded" width={30} height={30} />
+            <Skeleton variant="rounded" width={72} height={32} />
+          </Box>
+          {/* Match StepperFormFields: small TextField grid, gap: 2 */}
+          <Box
+            sx={{
+              display: "grid",
+              gridTemplateColumns: { xs: "1fr", sm: "1fr 1fr" },
+              gap: 2,
+            }}
+          >
+            {PERSON_FIELDS.map((def) => (
+              <Skeleton key={def.field} variant="rounded" height={40} />
+            ))}
+          </Box>
+        </Box>
+      )}
 
       {error && (
         <p style={{ color: "#b00020", fontSize: "0.875rem" }}>
