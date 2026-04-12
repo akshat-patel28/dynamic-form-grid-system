@@ -29,4 +29,8 @@ export type CommentFormRow = JsonPlaceholderComment & {
   rating: number;
   /** ISO-8601 date (`YYYY-MM-DD`) from `new Date().toISOString().slice(0, 10)`. */
   createdAt: string;
+  category: string;
+  featured: boolean;
+  priority: string;
+  verified: boolean;
 };

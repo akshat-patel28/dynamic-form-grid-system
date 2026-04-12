@@ -17,15 +17,13 @@
 
 import { useMemo, useState } from "react";
 import Link from "next/link";
-import Box from "@mui/material/Box";
-import Skeleton from "@mui/material/Skeleton";
 import { PAGE_ROUTE } from "@/helpers/constant/constant";
 import { useApi } from "@/helpers/hooks/useApi";
 import type { CommentFormRow, JsonPlaceholderComment } from "@/helpers/types/types";
 import { todayDateStringLocal, transformComments } from "@/helpers/utils/utils";
-import DataPagination from "@/_components/pagination";
+import FormPageContent from "./_components/form-page-content/FormPageContent";
+import PageLoader from "./_components/page-loader/PageLoader";
 import { CELL_INPUT_RENDERERS } from "@/_components/grid";
-import StepperForm from "@/_components/stepper-form";
 import type { FormFieldDef } from "@/_components/stepper-form";
 import * as Yup from "yup";
 
@@ -63,6 +61,37 @@ const COMMENT_FIELDS: FormFieldDef<CommentFormRow>[] = [
     field: "createdAt",
     label: "Created at",
     inputRenderer: CELL_INPUT_RENDERERS.DATE_INPUT,
+  },
+  {
+    field: "category",
+    label: "Category",
+    inputRenderer: CELL_INPUT_RENDERERS.DROPDOWN_INPUT,
+    options: [
+      { value: "general", label: "General" },
+      { value: "bug", label: "Bug" },
+      { value: "feature", label: "Feature" },
+      { value: "question", label: "Question" },
+    ],
+  },
+  {
+    field: "featured",
+    label: "Featured",
+    inputRenderer: CELL_INPUT_RENDERERS.CHECKBOX_INPUT,
+  },
+  {
+    field: "priority",
+    label: "Priority",
+    inputRenderer: CELL_INPUT_RENDERERS.RADIO_INPUT,
+    options: [
+      { value: "low", label: "Low" },
+      { value: "medium", label: "Medium" },
+      { value: "high", label: "High" },
+    ],
+  },
+  {
+    field: "verified",
+    label: "Verified",
+    inputRenderer: CELL_INPUT_RENDERERS.SWITCH_INPUT,
   },
 ];
 
@@ -151,94 +180,19 @@ export default function DynamicFormPage() {
         — one comment per step
       </p>
 
-      {loading && (
-        <Box
-          component="section"
-          aria-busy="true"
-          aria-label="Loading comments"
-          sx={{ width: "100%" }}
-        >
-          <Skeleton variant="text" width={200} sx={{ fontSize: "0.875rem", mb: 2 }} />
-          <Box
-            sx={{
-              display: "flex",
-              flexWrap: "wrap",
-              alignItems: "center",
-              justifyContent: "center",
-              gap: 1,
-              mb: 3,
-            }}
-          >
-            <Skeleton variant="rounded" width={30} height={30} />
-            <Skeleton variant="rounded" width={30} height={30} />
-            <Skeleton variant="text" width={72} sx={{ fontSize: "0.8125rem" }} />
-            <Skeleton variant="rounded" width={30} height={30} />
-            <Skeleton variant="rounded" width={30} height={30} />
-            <Skeleton variant="rounded" width={80} height={40} />
-            <Skeleton variant="rounded" width={72} height={32} />
-          </Box>
-          <Box
-            sx={{
-              display: "grid",
-              gridTemplateColumns: { xs: "1fr", sm: "1fr 1fr" },
-              gap: 2,
-            }}
-          >
-            {COMMENT_FIELDS.map((def) => {
-              const isTextarea =
-                def.inputRenderer === CELL_INPUT_RENDERERS.TEXTAREA_INPUT;
-              return (
-                <Skeleton
-                  key={def.field}
-                  variant="rounded"
-                  height={isTextarea ? 92 : 40}
-                  sx={
-                    isTextarea
-                      ? { gridColumn: { xs: "1", sm: "1 / -1" } }
-                      : undefined
-                  }
-                />
-              );
-            })}
-          </Box>
-        </Box>
-      )}
+      {loading && <PageLoader fieldDefs={COMMENT_FIELDS} />}
 
-      {error && (
-        <p style={{ color: "#b00020", fontSize: "0.875rem" }}>
-          {error.message}
-        </p>
-      )}
-
-      {!loading && !error && comments.length > 0 && (
-        <StepperForm<CommentFormRow>
-          key={apiPage}
-          fieldDefs={COMMENT_FIELDS}
-          rowData={comments}
-          validationSchema={commentValidationSchema}
-          onSubmit={(allRows) => {
-            console.log("Submitted all rows:", allRows);
-          }}
-        />
-      )}
-
-      {totalCount > 0 && (
-        <div style={{ marginTop: "24px" }}>
-          <DataPagination
-            page={apiPage}
-            totalPages={totalApiPages}
-            totalItems={totalCount}
-            disabled={loading}
-            onPageChange={setApiPage}
-          />
-        </div>
-      )}
-
-      {!loading && !error && comments.length === 0 && (
-        <p style={{ fontSize: "0.875rem", color: "#666" }}>
-          No comments found.
-        </p>
-      )}
+      <FormPageContent
+        loading={loading}
+        error={error}
+        comments={comments}
+        apiPage={apiPage}
+        totalCount={totalCount}
+        totalApiPages={totalApiPages}
+        onPageChange={setApiPage}
+        fieldDefs={COMMENT_FIELDS}
+        validationSchema={commentValidationSchema}
+      />
     </main>
   );
 }

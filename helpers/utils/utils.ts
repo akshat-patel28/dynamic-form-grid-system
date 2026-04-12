@@ -22,5 +22,9 @@ export function transformComments(
     ...row,
     rating: Math.floor(Math.random() * 5) + 1,
     createdAt,
+    category: "general",
+    featured: false,
+    priority: "medium",
+    verified: true,
   }));
 }
