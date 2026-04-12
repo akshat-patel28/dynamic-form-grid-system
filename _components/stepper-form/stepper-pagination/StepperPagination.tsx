@@ -32,6 +32,11 @@ import NavigateNextIcon from "@mui/icons-material/NavigateNext";
 
 import type { StepperPaginationProps } from "../helpers/types/types";
 
+/** MUI disabled buttons often keep default cursor; use not-allowed for clarity. */
+const disabledCursorSx = {
+  "&.Mui-disabled": { cursor: "not-allowed" },
+} as const;
+
 /**
  * StepperPagination
  *
@@ -56,6 +61,7 @@ const StepperPagination = ({
   activeStep,
   totalSteps,
   onStepChange,
+  disabled = false,
 }: StepperPaginationProps) => {
   const [jumpValue, setJumpValue] = useState("");
 
@@ -107,22 +113,25 @@ const StepperPagination = ({
         justifyContent: "center",
         gap: 1,
         mb: 3,
+        ...(disabled ? { cursor: "not-allowed" } : {}),
       }}
     >
       {/* First / Previous */}
       <IconButton
         size="small"
-        disabled={isFirst}
+        disabled={disabled || isFirst}
         onClick={() => goTo(0)}
         aria-label="First row"
+        sx={disabledCursorSx}
       >
         <FirstPageIcon fontSize="small" />
       </IconButton>
       <IconButton
         size="small"
-        disabled={isFirst}
+        disabled={disabled || isFirst}
         onClick={() => goTo(activeStep - 1)}
         aria-label="Previous row"
+        sx={disabledCursorSx}
       >
         <NavigateBeforeIcon fontSize="small" />
       </IconButton>
@@ -135,17 +144,19 @@ const StepperPagination = ({
       {/* Next / Last */}
       <IconButton
         size="small"
-        disabled={isLast}
+        disabled={disabled || isLast}
         onClick={() => goTo(activeStep + 1)}
         aria-label="Next row"
+        sx={disabledCursorSx}
       >
         <NavigateNextIcon fontSize="small" />
       </IconButton>
       <IconButton
         size="small"
-        disabled={isLast}
+        disabled={disabled || isLast}
         onClick={() => goTo(totalSteps - 1)}
         aria-label="Last row"
+        sx={disabledCursorSx}
       >
         <LastPageIcon fontSize="small" />
       </IconButton>
@@ -157,7 +168,13 @@ const StepperPagination = ({
         value={jumpValue}
         onChange={handleJumpInputChange}
         onKeyDown={handleJumpKeyDown}
-        sx={{ width: 80 }}
+        disabled={disabled}
+        sx={{
+          width: 80,
+          "& .MuiOutlinedInput-root.Mui-disabled": {
+            cursor: "not-allowed",
+          },
+        }}
         slotProps={{
           htmlInput: {
             min: 1,

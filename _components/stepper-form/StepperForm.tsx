@@ -137,6 +137,7 @@ const StepperFormInner = <
             onStepChange={(newStep) =>
               handleStepChange(newStep, formik.values, formik)
             }
+            disabled={!formik.isValid}
           />
 
           {/* Active row fields */}

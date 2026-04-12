@@ -150,4 +150,11 @@ export interface StepperPaginationProps {
    * @param newStep - Zero-based index of the target step.
    */
   onStepChange: (newStep: number) => void;
+
+  /**
+   * When `true`, all navigation controls (buttons and jump input) are
+   * disabled. Typically driven by form-level validation state so that
+   * the user must fix errors before navigating away.
+   */
+  disabled?: boolean;
 }
