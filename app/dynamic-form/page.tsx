@@ -24,6 +24,7 @@ import { useApi } from "@/helpers/hooks/useApi";
 import type { CommentFormRow, JsonPlaceholderComment } from "@/helpers/types/types";
 import { transformComments } from "@/helpers/utils/utils";
 import DataPagination from "@/_components/pagination";
+import { CELL_INPUT_RENDERERS } from "@/_components/grid";
 import StepperForm from "@/_components/stepper-form";
 import type { FormFieldDef } from "@/_components/stepper-form";
 import * as Yup from "yup";
@@ -41,12 +42,28 @@ const API_PAGE_LIMIT = 10;
  * Form field definitions for a comment row.
  */
 const COMMENT_FIELDS: FormFieldDef<CommentFormRow>[] = [
-  { field: "postId", label: "Post ID", inputRenderer: "numberInput" },
-  { field: "name", label: "Name", inputRenderer: "textInput" },
-  { field: "email", label: "Email", inputRenderer: "emailInput" },
-  { field: "body", label: "Body", inputRenderer: "textInput" },
-  { field: "rating", label: "Rating", inputRenderer: "numberInput" },
-  { field: "createdAt", label: "Created at", inputRenderer: "dateInput" },
+  {
+    field: "postId",
+    label: "Post ID",
+    inputRenderer: CELL_INPUT_RENDERERS.NUMBER_INPUT,
+  },
+  { field: "name", label: "Name", inputRenderer: CELL_INPUT_RENDERERS.TEXT_INPUT },
+  { field: "email", label: "Email", inputRenderer: CELL_INPUT_RENDERERS.EMAIL_INPUT },
+  {
+    field: "body",
+    label: "Body",
+    inputRenderer: CELL_INPUT_RENDERERS.TEXTAREA_INPUT,
+  },
+  {
+    field: "rating",
+    label: "Rating",
+    inputRenderer: CELL_INPUT_RENDERERS.NUMBER_INPUT,
+  },
+  {
+    field: "createdAt",
+    label: "Created at",
+    inputRenderer: CELL_INPUT_RENDERERS.DATE_INPUT,
+  },
 ];
 
 const commentValidationSchema = Yup.object({
@@ -142,9 +159,22 @@ export default function DynamicFormPage() {
               gap: 2,
             }}
           >
-            {COMMENT_FIELDS.map((def) => (
-              <Skeleton key={def.field} variant="rounded" height={40} />
-            ))}
+            {COMMENT_FIELDS.map((def) => {
+              const isTextarea =
+                def.inputRenderer === CELL_INPUT_RENDERERS.TEXTAREA_INPUT;
+              return (
+                <Skeleton
+                  key={def.field}
+                  variant="rounded"
+                  height={isTextarea ? 92 : 40}
+                  sx={
+                    isTextarea
+                      ? { gridColumn: { xs: "1", sm: "1 / -1" } }
+                      : undefined
+                  }
+                />
+              );
+            })}
           </Box>
         </Box>
       )}

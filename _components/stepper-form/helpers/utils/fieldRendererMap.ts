@@ -11,20 +11,25 @@
  * const type = getInputType('numberInput'); // "number"
  */
 
-import type { CellInputRenderer } from "@/_components/grid/helpers/constants/cellInputRenderers";
+import {
+  CELL_INPUT_RENDERERS,
+  type CellInputRenderer,
+} from "@/_components/grid/helpers/constants/cellInputRenderers";
 
 /**
  * Lookup table from `CellInputRenderer` value to HTML input `type`.
  *
- * | Renderer key   | HTML type  |
- * |---------------|------------|
- * | `"textInput"`   | `"text"`   |
- * | `"numberInput"` | `"number"` |
- * | `"emailInput"`  | `"email"`  |
- * | `"dateInput"`   | `"date"`   |
+ * | Renderer key      | HTML type  |
+ * |------------------|------------|
+ * | `"textInput"` | `"text"`   |
+ * | `"textareaInput"` | `"text"`   |
+ * | `"numberInput"`   | `"number"` |
+ * | `"emailInput"`    | `"email"`  |
+ * | `"dateInput"`     | `"date"`   |
  */
 const RENDERER_TO_INPUT_TYPE: Record<CellInputRenderer, string> = {
   textInput: "text",
+  textareaInput: "text",
   numberInput: "number",
   emailInput: "email",
   dateInput: "date",
@@ -45,4 +50,13 @@ const RENDERER_TO_INPUT_TYPE: Record<CellInputRenderer, string> = {
 export function getInputType(renderer: CellInputRenderer | undefined): string {
   if (!renderer) return "text";
   return RENDERER_TO_INPUT_TYPE[renderer] ?? "text";
+}
+
+/**
+ * Whether the renderer should use a multiline MUI `TextField` (`textarea`).
+ */
+export function isTextareaRenderer(
+  renderer: CellInputRenderer | undefined,
+): boolean {
+  return renderer === CELL_INPUT_RENDERERS.TEXTAREA_INPUT;
 }

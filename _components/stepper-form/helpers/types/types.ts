@@ -67,7 +67,7 @@ export interface FormFieldDef<
   /**
    * Determines which MUI input variant to render for this field.
    * Uses the same `CellInputRenderer` union as the grid's `ColumnDef`:
-   * `"textInput"` | `"numberInput"` | `"emailInput"` | `"dateInput"`.
+   * `"textInput"` | `"textareaInput"` | `"numberInput"` | `"emailInput"` | `"dateInput"`.
    *
    * When omitted, defaults to `"textInput"`.
    */

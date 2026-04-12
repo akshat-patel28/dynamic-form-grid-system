@@ -10,6 +10,7 @@
  */
 export const CELL_INPUT_RENDERERS = {
   TEXT_INPUT: "textInput",
+  TEXTAREA_INPUT: "textareaInput",
   NUMBER_INPUT: "numberInput",
   EMAIL_INPUT: "emailInput",
   DATE_INPUT: "dateInput",

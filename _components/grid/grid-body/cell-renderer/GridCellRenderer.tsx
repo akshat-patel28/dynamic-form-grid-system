@@ -184,6 +184,22 @@ export default function GridCellRenderer<
           sx={inputSx}
         />
       ),
+      [CELL_INPUT_RENDERERS.TEXTAREA_INPUT]: () => (
+        <TextInput
+          inputRef={inputRef}
+          value={editValue}
+          onChange={handleInputChange}
+          onBlur={handleInputBlur}
+          onKeyDown={handleInputKeyDown}
+          size="small"
+          variant="outlined"
+          className={styles.cellInput}
+          slotProps={inputSlotProps}
+          sx={inputSx}
+          multiline
+          minRows={2}
+        />
+      ),
       [CELL_INPUT_RENDERERS.NUMBER_INPUT]: () => (
         <TextInput
           inputRef={inputRef}

@@ -19,7 +19,10 @@ import Box from "@mui/material/Box";
 import { useFormikContext } from "formik";
 
 import type { StepperFormFieldsProps } from "../helpers/types/types";
-import { getInputType } from "../helpers/utils/fieldRendererMap";
+import {
+  getInputType,
+  isTextareaRenderer,
+} from "../helpers/utils/fieldRendererMap";
 
 /**
  * Resolves whether a field is editable for the current row.
@@ -79,6 +82,7 @@ const StepperFormFields = <
         const fieldKey = def.field as string;
         const label = def.label ?? fieldKey;
         const inputType = getInputType(def.inputRenderer);
+        const multiline = isTextareaRenderer(def.inputRenderer);
         const isEditable = resolveEditable(def.editable, rowData);
         const hasError =
           Boolean(touched[fieldKey]) && Boolean(errors[fieldKey]);
@@ -92,7 +96,7 @@ const StepperFormFields = <
             key={fieldKey}
             name={fieldKey}
             label={label}
-            type={inputType}
+            type={multiline ? undefined : inputType}
             placeholder={def.placeholder}
             disabled={!isEditable}
             value={values[fieldKey] ?? ""}
@@ -102,6 +106,13 @@ const StepperFormFields = <
             helperText={errorText}
             size="small"
             fullWidth
+            multiline={multiline}
+            minRows={multiline ? 3 : undefined}
+            sx={
+              multiline
+                ? { gridColumn: { xs: "1", sm: "1 / -1" } }
+                : undefined
+            }
             slotProps={
               inputType === "date"
                 ? { inputLabel: { shrink: true } }
