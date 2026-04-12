@@ -130,20 +130,20 @@ const StepperFormInner = <
             Editing row {activeStep + 1} of {rowData.length}
           </Typography>
 
-          {/* Active row fields */}
-          <StepperFormFields<TData>
-            fieldDefs={fieldDefs}
-            rowData={
-              rowStoreRef.current[activeStep] ?? rowData[activeStep]
-            }
-          />
-
           {/* Row-level stepper navigation */}
           <StepperPagination
             activeStep={activeStep}
             totalSteps={rowData.length}
             onStepChange={(newStep) =>
               handleStepChange(newStep, formik.values, formik)
+            }
+          />
+
+          {/* Active row fields */}
+          <StepperFormFields<TData>
+            fieldDefs={fieldDefs}
+            rowData={
+              rowStoreRef.current[activeStep] ?? rowData[activeStep]
             }
           />
         </Box>

@@ -6,7 +6,7 @@
  * navigate and edit fields via the stepper row controls.
  *
  * API pagination is handled by a standalone `<DataPagination />`
- * component that is fully independent of the form. Changing the page
+ * component below the form, fully independent of it. Changing the page
  * fetches a new batch of people from SWAPI; the form simply receives
  * whatever `rowData` is current.
  *
@@ -167,19 +167,6 @@ export default function DynamicFormPage() {
         — one person per step
       </p>
 
-      {/* API-level pagination — fully independent of the form */}
-      {totalCount > 0 && (
-        <div style={{ marginBottom: "24px" }}>
-          <DataPagination
-            page={apiPage}
-            totalPages={totalApiPages}
-            totalItems={totalCount}
-            disabled={loading}
-            onPageChange={setApiPage}
-          />
-        </div>
-      )}
-
       {loading && <p style={{ fontSize: "0.875rem" }}>Loading&hellip;</p>}
 
       {error && (
@@ -197,6 +184,19 @@ export default function DynamicFormPage() {
             console.log("Submitted all rows:", allRows);
           }}
         />
+      )}
+
+      {/* API-level pagination — fully independent of the form */}
+      {totalCount > 0 && (
+        <div style={{ marginTop: "24px" }}>
+          <DataPagination
+            page={apiPage}
+            totalPages={totalApiPages}
+            totalItems={totalCount}
+            disabled={loading}
+            onPageChange={setApiPage}
+          />
+        </div>
       )}
 
       {!loading && !error && people.length === 0 && (

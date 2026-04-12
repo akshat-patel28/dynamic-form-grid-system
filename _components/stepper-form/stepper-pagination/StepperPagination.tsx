@@ -106,7 +106,7 @@ const StepperPagination = ({
         alignItems: "center",
         justifyContent: "center",
         gap: 1,
-        mt: 3,
+        mb: 3,
       }}
     >
       {/* First / Previous */}
