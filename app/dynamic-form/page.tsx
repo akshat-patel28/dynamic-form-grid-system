@@ -174,6 +174,7 @@ export default function DynamicFormPage() {
             <Skeleton variant="text" width={72} sx={{ fontSize: "0.8125rem" }} />
             <Skeleton variant="rounded" width={30} height={30} />
             <Skeleton variant="rounded" width={30} height={30} />
+            <Skeleton variant="rounded" width={80} height={40} />
             <Skeleton variant="rounded" width={72} height={32} />
           </Box>
           <Box

@@ -6,6 +6,8 @@
  * - First / Previous / Next / Last icon buttons
  * - "Row X of Y" label
  * - Compact text field for direct row-number jump
+ * - Submit button (`type="submit"`) wired to the parent form; disabled when
+ *   `disabled` is true (e.g. validation errors on the active row)
  *
  * API-level pagination (fetching new pages of data) is handled
  * separately at the page level, not here.
@@ -22,8 +24,10 @@
 
 import { useState, type ChangeEvent, type KeyboardEvent } from "react";
 import Box from "@mui/material/Box";
+import Button from "@mui/material/Button";
 import IconButton from "@mui/material/IconButton";
 import TextField from "@mui/material/TextField";
+import Tooltip from "@mui/material/Tooltip";
 import Typography from "@mui/material/Typography";
 import FirstPageIcon from "@mui/icons-material/FirstPage";
 import LastPageIcon from "@mui/icons-material/LastPage";
@@ -36,6 +40,9 @@ import type { StepperPaginationProps } from "../helpers/types/types";
 const disabledCursorSx = {
   "&.Mui-disabled": { cursor: "not-allowed" },
 } as const;
+
+/** Lets tooltips receive hover when the wrapped IconButton is `disabled`. */
+const tooltipIconWrapSx = { display: "inline-flex" } as const;
 
 /**
  * StepperPagination
@@ -62,6 +69,7 @@ const StepperPagination = ({
   totalSteps,
   onStepChange,
   disabled = false,
+  submitLabel = "Submit",
 }: StepperPaginationProps) => {
   const [jumpValue, setJumpValue] = useState("");
 
@@ -117,24 +125,32 @@ const StepperPagination = ({
       }}
     >
       {/* First / Previous */}
-      <IconButton
-        size="small"
-        disabled={disabled || isFirst}
-        onClick={() => goTo(0)}
-        aria-label="First row"
-        sx={disabledCursorSx}
-      >
-        <FirstPageIcon fontSize="small" />
-      </IconButton>
-      <IconButton
-        size="small"
-        disabled={disabled || isFirst}
-        onClick={() => goTo(activeStep - 1)}
-        aria-label="Previous row"
-        sx={disabledCursorSx}
-      >
-        <NavigateBeforeIcon fontSize="small" />
-      </IconButton>
+      <Tooltip title="First">
+        <Box component="span" sx={tooltipIconWrapSx}>
+          <IconButton
+            size="small"
+            disabled={disabled || isFirst}
+            onClick={() => goTo(0)}
+            aria-label="First row"
+            sx={disabledCursorSx}
+          >
+            <FirstPageIcon fontSize="small" />
+          </IconButton>
+        </Box>
+      </Tooltip>
+      <Tooltip title="Prev">
+        <Box component="span" sx={tooltipIconWrapSx}>
+          <IconButton
+            size="small"
+            disabled={disabled || isFirst}
+            onClick={() => goTo(activeStep - 1)}
+            aria-label="Previous row"
+            sx={disabledCursorSx}
+          >
+            <NavigateBeforeIcon fontSize="small" />
+          </IconButton>
+        </Box>
+      </Tooltip>
 
       {/* Step label */}
       <Typography variant="body2" sx={{ mx: 1, color: "text.secondary" }}>
@@ -142,24 +158,32 @@ const StepperPagination = ({
       </Typography>
 
       {/* Next / Last */}
-      <IconButton
-        size="small"
-        disabled={disabled || isLast}
-        onClick={() => goTo(activeStep + 1)}
-        aria-label="Next row"
-        sx={disabledCursorSx}
-      >
-        <NavigateNextIcon fontSize="small" />
-      </IconButton>
-      <IconButton
-        size="small"
-        disabled={disabled || isLast}
-        onClick={() => goTo(totalSteps - 1)}
-        aria-label="Last row"
-        sx={disabledCursorSx}
-      >
-        <LastPageIcon fontSize="small" />
-      </IconButton>
+      <Tooltip title="Next">
+        <Box component="span" sx={tooltipIconWrapSx}>
+          <IconButton
+            size="small"
+            disabled={disabled || isLast}
+            onClick={() => goTo(activeStep + 1)}
+            aria-label="Next row"
+            sx={disabledCursorSx}
+          >
+            <NavigateNextIcon fontSize="small" />
+          </IconButton>
+        </Box>
+      </Tooltip>
+      <Tooltip title="Last">
+        <Box component="span" sx={tooltipIconWrapSx}>
+          <IconButton
+            size="small"
+            disabled={disabled || isLast}
+            onClick={() => goTo(totalSteps - 1)}
+            aria-label="Last row"
+            sx={disabledCursorSx}
+          >
+            <LastPageIcon fontSize="small" />
+          </IconButton>
+        </Box>
+      </Tooltip>
 
       {/* Direct row jump input */}
       <TextField
@@ -184,6 +208,19 @@ const StepperPagination = ({
         }}
         type="number"
       />
+
+      <Button
+        type="submit"
+        variant="contained"
+        size="small"
+        disabled={disabled}
+        sx={{
+          ml: { xs: 0, sm: 1 },
+          "&.Mui-disabled": { cursor: "not-allowed" },
+        }}
+      >
+        {submitLabel}
+      </Button>
     </Box>
   );
 };

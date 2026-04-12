@@ -157,4 +157,12 @@ export interface StepperPaginationProps {
    * the user must fix errors before navigating away.
    */
   disabled?: boolean;
+
+  /**
+   * Label for the form submit button (`type="submit"`). Renders beside the
+   * stepper controls and triggers the wrapping form’s submit handler.
+   *
+   * @defaultValue `"Submit"`
+   */
+  submitLabel?: string;
 }

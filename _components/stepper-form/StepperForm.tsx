@@ -76,11 +76,7 @@ const StepperFormInner = <
    * passed as a prop to `<StepperPagination />`.
    */
   const handleStepChange = useCallback(
-    (
-      newStep: number,
-      currentValues: TData,
-      helpers: FormikHelpers<TData>,
-    ) => {
+    (newStep: number, currentValues: TData, helpers: FormikHelpers<TData>) => {
       rowStoreRef.current[activeStep] = currentValues;
 
       const nextRow = rowStoreRef.current[newStep] ?? rowData[newStep];
@@ -137,15 +133,13 @@ const StepperFormInner = <
             onStepChange={(newStep) =>
               handleStepChange(newStep, formik.values, formik)
             }
-            disabled={!formik.isValid}
+            disabled={!formik.isValid || formik.isSubmitting}
           />
 
           {/* Active row fields */}
           <StepperFormFields<TData>
             fieldDefs={fieldDefs}
-            rowData={
-              rowStoreRef.current[activeStep] ?? rowData[activeStep]
-            }
+            rowData={rowStoreRef.current[activeStep] ?? rowData[activeStep]}
           />
         </Box>
       )}
