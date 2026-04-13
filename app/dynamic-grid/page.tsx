@@ -342,15 +342,6 @@ export default function DynamicGridPage() {
       >
         Dynamic Grid
       </h1>
-      <p
-        style={{ marginBottom: "20px", fontSize: "0.875rem", color: "#64748b" }}
-      >
-        22 columns · JSONPlaceholder <code>/posts</code> + mock employee merge ·{" "}
-        <a href={POSTS_API_BASE} style={{ color: "inherit" }}>
-          API
-        </a>{" "}
-        pagination · sticky footer
-      </p>
 
       {error && (
         <p

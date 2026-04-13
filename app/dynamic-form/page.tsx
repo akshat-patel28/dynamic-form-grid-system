@@ -19,7 +19,10 @@ import { useMemo, useState } from "react";
 import Link from "next/link";
 import { PAGE_ROUTE } from "@/helpers/constant/constant";
 import { useApi } from "@/helpers/hooks/useApi";
-import type { CommentFormRow, JsonPlaceholderComment } from "@/helpers/types/types";
+import type {
+  CommentFormRow,
+  JsonPlaceholderComment,
+} from "@/helpers/types/types";
 import { todayDateStringLocal, transformComments } from "@/helpers/utils/utils";
 import FormPageContent from "./_components/form-page-content/FormPageContent";
 import PageLoader from "./_components/page-loader/PageLoader";
@@ -49,8 +52,16 @@ const COMMENT_FIELDS: FormFieldDef<CommentFormRow>[] = [
     label: "Post ID",
     inputRenderer: CELL_INPUT_RENDERERS.NUMBER_INPUT,
   },
-  { field: "name", label: "Name", inputRenderer: CELL_INPUT_RENDERERS.TEXT_INPUT },
-  { field: "email", label: "Email", inputRenderer: CELL_INPUT_RENDERERS.EMAIL_INPUT },
+  {
+    field: "name",
+    label: "Name",
+    inputRenderer: CELL_INPUT_RENDERERS.TEXT_INPUT,
+  },
+  {
+    field: "email",
+    label: "Email",
+    inputRenderer: CELL_INPUT_RENDERERS.EMAIL_INPUT,
+  },
   {
     field: "body",
     label: "Body",
@@ -117,14 +128,10 @@ const commentValidationSchema = Yup.object({
     .required("Rating is required"),
   createdAt: Yup.string()
     .required("Created at is required")
-    .test(
-      "not-after-today",
-      "Date cannot be after today",
-      (value) => {
-        if (!value) return false;
-        return value <= todayDateStringLocal();
-      },
-    ),
+    .test("not-after-today", "Date cannot be after today", (value) => {
+      if (!value) return false;
+      return value <= todayDateStringLocal();
+    }),
 });
 
 /**
@@ -139,8 +146,7 @@ export default function DynamicFormPage() {
   const [apiPage, setApiPage] = useState(1);
 
   const endpoint = useMemo(
-    () =>
-      `${COMMENTS_API_BASE}?_page=${apiPage}&_limit=${API_PAGE_LIMIT}`,
+    () => `${COMMENTS_API_BASE}?_page=${apiPage}&_limit=${API_PAGE_LIMIT}`,
     [apiPage],
   );
 
@@ -155,10 +161,7 @@ export default function DynamicFormPage() {
   );
 
   const totalCount = JSON_PLACEHOLDER_COMMENTS_TOTAL;
-  const totalApiPages = Math.max(
-    1,
-    Math.ceil(totalCount / API_PAGE_LIMIT),
-  );
+  const totalApiPages = Math.max(1, Math.ceil(totalCount / API_PAGE_LIMIT));
 
   return (
     <main style={{ padding: "24px", maxWidth: "48rem", margin: "0 auto" }}>
@@ -176,13 +179,6 @@ export default function DynamicFormPage() {
       <h1 style={{ fontSize: "1.5rem", marginBottom: "8px" }}>
         Dynamic Stepper Form
       </h1>
-      <p style={{ color: "#555", marginBottom: "16px", fontSize: "0.9rem" }}>
-        Comments from{" "}
-        <a href={COMMENTS_API_BASE} style={{ color: "inherit" }}>
-          JSONPlaceholder
-        </a>{" "}
-        — one comment per step
-      </p>
 
       {loading && <PageLoader fieldDefs={COMMENT_FIELDS} />}
 
