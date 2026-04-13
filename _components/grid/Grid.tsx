@@ -1,10 +1,23 @@
 "use client";
 
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import type { GridProps } from "./helpers/types/types";
+import { useRowSelection } from "./helpers/hooks/useRowSelection";
 import GridHeader from "./grid-header/GridHeader";
 import GridBody from "./grid-body/GridBody";
+import GridFooter from "./grid-footer/GridFooter";
 import styles from "./grid.module.css";
+
+function replaceRowField<TData extends Record<string, unknown>>(
+  rows: TData[],
+  rowIndex: number,
+  field: string,
+  value: unknown,
+): TData[] {
+  return rows.map((row, i) =>
+    i === rowIndex ? { ...row, [field]: value } : row,
+  );
+}
 
 /**
  * Grid
@@ -21,6 +34,7 @@ import styles from "./grid.module.css";
  * │  │  row 1, cell 1  │  row 1, cell 2  │  …                                 │ │
  * │  │  row 2, cell 1  │  row 2, cell 2  │  …                                 │ │
  * │  └─────────────────────────────────────────────────────────────────────────┘ │
+ * │  Optional: GridFooter (sticky bottom) when `stickyFooterRowIndex` is set       │
  * └─────────────────────────────────────────────────────────────────────────────┘
  * ```
  *
@@ -65,10 +79,31 @@ const Grid = <TData extends Record<string, unknown> = Record<string, unknown>>({
   columnDefs,
   rowData,
   onCellValueChanged,
+  stickyFooterRowIndex,
 }: GridProps<TData>) => {
   const [internalRowData, setInternalRowData] = useState<TData[]>(() =>
     rowData.map((row) => ({ ...row })),
   );
+
+  const { toggleRow, isSelected } = useRowSelection();
+
+  const resolvedFooterIndex =
+    stickyFooterRowIndex !== undefined &&
+    Number.isInteger(stickyFooterRowIndex) &&
+    stickyFooterRowIndex >= 0 &&
+    stickyFooterRowIndex < internalRowData.length
+      ? stickyFooterRowIndex
+      : undefined;
+
+  const bodyRowIndices = useMemo(() => {
+    const n = internalRowData.length;
+    if (resolvedFooterIndex === undefined) {
+      return Array.from({ length: n }, (_, i) => i);
+    }
+    return Array.from({ length: n }, (_, i) => i).filter(
+      (i) => i !== resolvedFooterIndex,
+    );
+  }, [internalRowData.length, resolvedFooterIndex]);
 
   const rowDataRef = useRef(internalRowData);
   const onCellValueChangedRef = useRef(onCellValueChanged);
@@ -87,17 +122,13 @@ const Grid = <TData extends Record<string, unknown> = Record<string, unknown>>({
       const oldValue = currentRow?.[field];
 
       setInternalRowData((prev) =>
-        prev.map((row, i) =>
-          i === rowIndex ? { ...row, [field]: value } : row,
-        ),
+        replaceRowField(prev, rowIndex, field, value),
       );
 
       if (onCellValueChangedRef.current && currentRow) {
         const revert = () => {
           setInternalRowData((prev) =>
-            prev.map((row, i) =>
-              i === rowIndex ? { ...row, [field]: oldValue } : row,
-            ),
+            replaceRowField(prev, rowIndex, field, oldValue),
           );
         };
         onCellValueChangedRef.current({
@@ -119,8 +150,21 @@ const Grid = <TData extends Record<string, unknown> = Record<string, unknown>>({
       <GridBody
         columnDefs={columnDefs}
         rowData={internalRowData}
+        rowIndices={bodyRowIndices}
+        toggleRow={toggleRow}
+        isSelected={isSelected}
         onCellValueChange={updateCellValue}
       />
+      {resolvedFooterIndex === undefined ? null : (
+        <GridFooter
+          columnDefs={columnDefs}
+          rowData={internalRowData}
+          footerRowIndex={resolvedFooterIndex}
+          toggleRow={toggleRow}
+          isSelected={isSelected}
+          onCellValueChange={updateCellValue}
+        />
+      )}
     </div>
   );
 };

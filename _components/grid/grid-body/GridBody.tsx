@@ -3,7 +3,6 @@ import { getColumnCellStyle } from "../helpers/utils/columnSizingStyle";
 import { useState } from "react";
 import { ToastContainer } from "react-toastify";
 import type { ColumnDef, FocusedCell } from "../helpers/types/types";
-import { useRowSelection } from "../helpers/hooks/useRowSelection";
 import styles from "../grid.module.css";
 import GridCellRenderer from "./cell-renderer/GridCellRenderer";
 
@@ -23,21 +22,28 @@ interface GridBodyProps<
   columnDefs: ColumnDef<TData>[];
 
   /**
-   * Array of row data objects to render.
-   * When the array is empty the component renders the empty state message
-   * instead of a list of rows.
+   * Full row array; cells read `rowData[i]` using indices from `rowIndices`.
    */
   rowData: TData[];
 
+  /**
+   * Zero-based indices into `rowData` for rows rendered in document order.
+   * Callbacks use the same indices as keys into `rowData`.
+   */
+  rowIndices: number[];
+
   /** Called when a cell value is committed after inline editing. */
   onCellValueChange: (rowIndex: number, field: string, value: unknown) => void;
+
+  toggleRow: (rowIndex: number) => void;
+  isSelected: (rowIndex: number) => boolean;
 }
 
 /**
  * GridBody
  *
- * Renders the scrollable data section of the grid. For each entry in
- * `rowData` it produces one row `<div>` containing one cell per column.
+ * Renders the scrollable data section of the grid. For each index in
+ * `rowIndices` it produces one row `<div>` containing one cell per column.
  *
  * ### Cell value resolution
  * Non-checkbox cells use {@link resolveCellValue} in {@link GridCellRenderer}
@@ -54,8 +60,8 @@ interface GridBodyProps<
  * indices match so the active cell stays visible for keyboard navigation.
  *
  * ### Row selection
- * A column with `checkboxSelection: true` renders a checkbox per row. Toggling it
- * selects the row (`useRowSelection`) and applies `bodyRowSelected` for highlight.
+ * A column with `checkboxSelection: true` renders a checkbox per row. Selection
+ * state is controlled by the parent via `toggleRow` / `isSelected`.
  *
  * ### Toasts
  * A {@link ToastContainer} is rendered once for the body so cell copy actions
@@ -63,7 +69,8 @@ interface GridBodyProps<
  *
  * ### Empty state
  * When `rowData` is an empty array a centred "No Records Found" message is
- * rendered spanning the full width of the container.
+ * rendered. When `rowData` has rows but `rowIndices` is empty, only the toast
+ * host is rendered (e.g. sticky footer holds the only visible row).
  *
  * @param props - {@link GridBodyProps}
  * @returns The empty-state block, or a fragment of row `<div>` elements plus
@@ -74,6 +81,9 @@ interface GridBodyProps<
  * <GridBody
  *   columnDefs={[{ headerName: 'Name', field: 'name' }]}
  *   rowData={[{ name: 'Alice' }, { name: 'Bob' }]}
+ *   rowIndices={[0, 1]}
+ *   toggleRow={(i) => {}}
+ *   isSelected={() => false}
  *   onCellValueChange={(rowIndex, field, value) => {
  *     // persist or lift state
  *   }}
@@ -83,14 +93,16 @@ interface GridBodyProps<
 const GridBody = <TData extends Record<string, unknown>>({
   columnDefs,
   rowData,
+  rowIndices,
   onCellValueChange,
+  toggleRow,
+  isSelected,
 }: GridBodyProps<TData>) => {
   /**
    * Tracks which cell currently has keyboard / pointer focus.
    * `null` when no cell is focused (e.g. focus is outside the grid).
    */
   const [focusedCell, setFocusedCell] = useState<FocusedCell | null>(null);
-  const { toggleRow, isSelected } = useRowSelection();
   const hasCheckboxColumn = columnDefs.some((col) => col.checkboxSelection);
 
   if (rowData.length === 0) {
@@ -101,9 +113,29 @@ const GridBody = <TData extends Record<string, unknown>>({
     );
   }
 
+  const toastHost = (
+    <ToastContainer
+      position="bottom-center"
+      autoClose={2000}
+      hideProgressBar={false}
+      newestOnTop={false}
+      closeOnClick={false}
+      rtl={false}
+      pauseOnFocusLoss
+      draggable
+      pauseOnHover
+      theme="dark"
+    />
+  );
+
+  if (rowIndices.length === 0) {
+    return <>{toastHost}</>;
+  }
+
   return (
     <>
-      {rowData.map((row, rowIndex) => {
+      {rowIndices.map((rowIndex) => {
+        const row = rowData[rowIndex];
         const rowSelected = hasCheckboxColumn && isSelected(rowIndex);
 
         const rowClass = [
@@ -154,18 +186,7 @@ const GridBody = <TData extends Record<string, unknown>>({
           </div>
         );
       })}
-      <ToastContainer
-        position="bottom-center"
-        autoClose={2000}
-        hideProgressBar={false}
-        newestOnTop={false}
-        closeOnClick={false}
-        rtl={false}
-        pauseOnFocusLoss
-        draggable
-        pauseOnHover
-        theme="dark"
-      />
+      {toastHost}
     </>
   );
 };

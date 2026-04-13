@@ -213,6 +213,14 @@ export interface GridProps<
    * the change — typically called when a subsequent API save fails.
    */
   onCellValueChanged?: (params: OnCellValueChangedParams<TData>) => void;
+
+  /**
+   * When set to a valid zero-based index into `rowData`, that row is not
+   * rendered in the scrollable body; it is rendered once in a sticky footer
+   * that stays at the bottom of the grid and scrolls horizontally with columns.
+   * Indices outside `0 .. rowData.length - 1` are ignored (no footer).
+   */
+  stickyFooterRowIndex?: number;
 }
 
 /**

@@ -134,15 +134,53 @@ const DEMO_COLUMNS: ColumnDef<EmployeeRow>[] = [
   },
 ];
 
+/** Sum of numeric salaries across demo rows (mixed currencies; shown as USD in the footer). */
+const DEMO_TOTAL_SALARY = DEMO_ROWS.reduce(
+  (acc, row) =>
+    acc + (typeof row.salary === "number" ? row.salary : 0),
+  0,
+);
+
+/** Single summary row pinned to the grid footer via `stickyFooterRowIndex`. */
+const DEMO_FOOTER_ROW: EmployeeRow = {
+  ...DEMO_ROWS[0],
+  id: 0,
+  firstName: "Totals",
+  lastName: `(${DEMO_ROWS.length} employees)`,
+  email: "—",
+  phone: "—",
+  department: "—",
+  designation: "—",
+  employeeCode: "—",
+  dateOfJoin: "—",
+  dateOfBirth: "—",
+  gender: "—",
+  location: "—",
+  city: "—",
+  state: "—",
+  country: "—",
+  pincode: "—",
+  salary: DEMO_TOTAL_SALARY,
+  currency: "USD",
+  manager: "—",
+  team: "—",
+  status: "—",
+  lastUpdated: "—",
+  enabled: false,
+};
+
+const DEMO_ROWS_WITH_FOOTER = [...DEMO_ROWS, DEMO_FOOTER_ROW];
+
 /**
  * DynamicGridPage
  *
  * Demo page for the `<Grid />` component.
  *
- * Renders the grid with 22 columns and 50 mock rows sourced from
- * `helpers/mock/gridDemoData.ts`. The combined minimum column width (~4 400 px)
- * exceeds most viewport widths, demonstrating horizontal scroll. Vertical
- * scroll is triggered by the 50 rows within the constrained container height.
+ * Renders the grid with 22 columns, 50 data rows, and one sticky footer row
+ * (salary total). Mock data comes from `helpers/mock/gridDemoData.ts`. The
+ * combined minimum column width (~4 400 px) exceeds most viewport widths,
+ * demonstrating horizontal scroll. Vertical scroll is triggered by the data
+ * rows within the constrained container height; the footer stays at the bottom.
  *
  * @returns The page layout containing the grid demo.
  */
@@ -173,12 +211,14 @@ export default function DynamicGridPage() {
       <p
         style={{ marginBottom: "20px", fontSize: "0.875rem", color: "#64748b" }}
       >
-        22 columns · 50 rows · horizontal + vertical scroll
+        22 columns · 50 data rows · 1 sticky footer · horizontal + vertical
+        scroll
       </p>
 
       <Grid
         columnDefs={DEMO_COLUMNS}
-        rowData={DEMO_ROWS}
+        rowData={DEMO_ROWS_WITH_FOOTER}
+        stickyFooterRowIndex={DEMO_ROWS.length}
         onCellValueChanged={({ field, oldValue, newValue }) => {
           console.log(
             `Cell value changed — field: "${field}", old: ${JSON.stringify(oldValue)}, new: ${JSON.stringify(newValue)}`,

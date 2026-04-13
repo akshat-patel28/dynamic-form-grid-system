@@ -54,6 +54,24 @@
   border-bottom: none;
 }
 
+/* When a sticky footer follows, the last body row is not :last-child; footer row clears bottom cell borders. */
+.footerStack {
+  position: sticky;
+  bottom: 0;
+  z-index: 2;
+  background: #f8fafc;
+  box-shadow: 0 -1px 0 #e2e8f0;
+}
+
+.footerRow {
+  display: flex;
+}
+
+.footerRow .bodyCell {
+  border-bottom: none;
+  background: #f1f5f9;
+}
+
 .bodyCell {
   composes: cell;
   height: 42px;
