@@ -45,8 +45,8 @@ function resolveCellValue<TData extends Record<string, unknown>>(
  * GridCellRenderer
  *
  * Renders a single focusable data cell (`role="cell"`) with the formatted display value.
- * Display text comes from {@link resolveCellValue}. Used by {@link GridBody} for columns
- * that are not checkbox selection columns.
+ * Display text comes from the module-local `resolveCellValue` function. Used by `GridBody`
+ * and `GridFooter` for every non-checkbox column.
  *
  * ### Clipboard
  * **Ctrl+C** / **Cmd+C** copies the resolved display string to the clipboard and shows

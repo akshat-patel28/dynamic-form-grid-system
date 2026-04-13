@@ -30,8 +30,12 @@ import * as Yup from "yup";
 /** JSONPlaceholder exposes this total via `x-total-count` for `/comments`. */
 const JSON_PLACEHOLDER_COMMENTS_TOTAL = 500;
 
+const JSONPLACEHOLDER_BASE_URL =
+  process.env.NEXT_PUBLIC_JSONPLACEHOLDER_BASE_URL ??
+  "https://jsonplaceholder.typicode.com";
+
 /** Base URL for comments (pagination: `_page`, `_limit`). */
-const COMMENTS_API_BASE = "https://jsonplaceholder.typicode.com/comments";
+const COMMENTS_API_BASE = `${JSONPLACEHOLDER_BASE_URL.replace(/\/$/, "")}/comments`;
 
 /** Page size for API and pagination math. */
 const API_PAGE_LIMIT = 10;

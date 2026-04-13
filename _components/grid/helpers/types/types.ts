@@ -36,7 +36,7 @@ export interface ColumnDef<
 > {
   /**
    * Text displayed in the column header.
-   * If omitted the header cell renders empty.
+   * If omitted, `GridHeader` falls back to `field` so the label is never blank.
    */
   headerName?: string;
 
@@ -47,7 +47,8 @@ export interface ColumnDef<
   field: string;
 
   /**
-   * One or more CSS class names applied to every data cell in this column.
+   * One or more CSS class names applied to every non-checkbox data cell in this column
+   * (body and sticky footer rows).
    * Use for alignment helpers such as `'text-center'`.
    */
   cellClass?: string;
@@ -62,8 +63,8 @@ export interface ColumnDef<
   headerCellClassName?: string;
 
   /**
-   * One or more CSS class names applied to every body cell in this column.
-   * Use for per-column data styling such as alignment or colour.
+   * One or more CSS class names applied to every non-checkbox data cell in this column
+   * (`GridBody` and sticky `GridFooter` both use `GridCellRenderer`).
    *
    * @example
    * bodyCellClassName: 'text-right text-green-600'
@@ -146,20 +147,6 @@ export interface ColumnDef<
 }
 
 /**
- * Props accepted by the `<Grid />` component.
- *
- * @template TData Shape of a single row data object. Defaults to
- *   `Record<string, unknown>` when not specified.
- *
- * @example
- * type Employee = { id: number; name: string; department: string };
- *
- * const props: GridProps<Employee> = {
- *   columnDefs: [{ headerName: 'Name', field: 'name' }],
- *   rowData: [{ id: 1, name: 'Alice', department: 'Engineering' }],
- * };
- */
-/**
  * Payload passed to `onCellValueChanged` after a cell value is committed.
  *
  * @template TData Shape of a single row data object.
@@ -189,6 +176,24 @@ export interface OnCellValueChangedParams<
   revert: () => void;
 }
 
+/**
+ * Props accepted by the `<Grid />` component.
+ *
+ * @template TData Shape of a single row data object. Defaults to
+ *   `Record<string, unknown>` when not specified.
+ *
+ * @example
+ * type Employee = { id: number; name: string; department: string };
+ *
+ * const props: GridProps<Employee> = {
+ *   columnDefs: [{ headerName: 'Name', field: 'name' }],
+ *   rowData: [
+ *     { id: 1, name: 'Alice', department: 'Engineering' },
+ *     { id: 2, name: 'Bob', department: 'Sales' },
+ *   ],
+ *   stickyFooterRowIndex: 1,
+ * };
+ */
 export interface GridProps<
   TData extends Record<string, unknown> = Record<string, unknown>,
 > {
@@ -215,16 +220,17 @@ export interface GridProps<
   onCellValueChanged?: (params: OnCellValueChangedParams<TData>) => void;
 
   /**
-   * When set to a valid zero-based index into `rowData`, that row is not
-   * rendered in the scrollable body; it is rendered once in a sticky footer
-   * that stays at the bottom of the grid and scrolls horizontally with columns.
-   * Indices outside `0 .. rowData.length - 1` are ignored (no footer).
+   * When set to an integer in `0 .. rowData.length - 1`, that row is omitted from the
+   * scrollable body and rendered once in a sticky footer at the bottom of the grid
+   * (horizontal scroll stays aligned with columns). Non-integers and out-of-range
+   * values are ignored (no footer).
    */
   stickyFooterRowIndex?: number;
 }
 
 /**
- * Identifies the focused body cell by row and column index (state held in `GridBody`).
+ * Identifies the focused data cell by row and column index.
+ * Parents (`GridBody`, `GridFooter`) each keep their own `FocusedCell | null` state.
  */
 export interface FocusedCell {
   rowIndex: number;
@@ -252,15 +258,18 @@ export interface GridCellRendererProps<
   row: TData;
 
   /**
-   * Which cell in the grid body currently has focus, or `null` when focus is elsewhere.
-   * Used with `rowIndex` / `colIndex` to apply the focused cell class and build class names.
+   * Which cell currently has focus in the parent (`GridBody` or `GridFooter`), or `null`
+   * when focus is elsewhere. Compared to `rowIndex` / `colIndex` for the focus outline.
    */
   focusedCell: FocusedCell | null;
 
   /** Inline width constraints from the column definition; `undefined` when none apply. */
   cellStyle: CSSProperties | undefined;
 
-  /** Zero-based row index within the current `rowData` slice. */
+  /**
+   * Zero-based index of this row in the grid’s full `rowData` array (same index the parent
+   * passes to `onCellValueChange`).
+   */
   rowIndex: number;
 
   /** Zero-based column index within `columnDefs` (including checkbox column if present). */

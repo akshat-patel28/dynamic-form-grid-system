@@ -3,8 +3,8 @@ import { useCallback, useState } from "react";
 /**
  * Manages per-row checkbox selection state for the grid.
  *
- * Tracks which row indices are currently selected and exposes helpers
- * to toggle a row and query its selection status.
+ * Instantiated once on `Grid` so `GridBody` and `GridFooter` share the same `Set` of
+ * selected indices (footer rows can be selected like any other row).
  *
  * @returns `selectedRows` set, a `toggleRow` function, and an `isSelected` predicate.
  */

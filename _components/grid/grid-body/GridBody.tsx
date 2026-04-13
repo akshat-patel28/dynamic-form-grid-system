@@ -35,7 +35,13 @@ interface GridBodyProps<
   /** Called when a cell value is committed after inline editing. */
   onCellValueChange: (rowIndex: number, field: string, value: unknown) => void;
 
+  /**
+   * Toggles selection for the row at the given index. Must match the `toggleRow`
+   * from parent `Grid` so body and sticky footer stay in sync.
+   */
   toggleRow: (rowIndex: number) => void;
+
+  /** Whether the row at the given index is selected (checkbox column). */
   isSelected: (rowIndex: number) => boolean;
 }
 
@@ -46,8 +52,9 @@ interface GridBodyProps<
  * `rowIndices` it produces one row `<div>` containing one cell per column.
  *
  * ### Cell value resolution
- * Non-checkbox cells use {@link resolveCellValue} in {@link GridCellRenderer}
- * (`valueFormatter` when set, otherwise `row[col.field]` with null-safe string coercion).
+ * Non-checkbox cells use `GridCellRenderer`, which resolves display text with an internal
+ * `resolveCellValue` helper (`valueFormatter` when set, otherwise `row[col.field]` with
+ * null-safe string coercion).
  *
  * ### Keyboard navigation
  * Every cell is focusable (`tabIndex={0}`). Pressing **Tab** advances focus to
@@ -56,16 +63,17 @@ interface GridBodyProps<
  * management — no custom key handling is required.
  *
  * ### Focus highlight
- * Focus state is lifted here; {@link GridCellRenderer} applies `bodyCellFocused` when
- * indices match so the active cell stays visible for keyboard navigation.
+ * Focus state is lifted here; `GridCellRenderer` applies `bodyCellFocused` when indices
+ * match so the active cell stays visible for keyboard navigation.
  *
  * ### Row selection
  * A column with `checkboxSelection: true` renders a checkbox per row. Selection
  * state is controlled by the parent via `toggleRow` / `isSelected`.
  *
  * ### Toasts
- * A {@link ToastContainer} is rendered once for the body so cell copy actions
- * (see {@link GridCellRenderer}) can show transient feedback.
+ * A `ToastContainer` is rendered here (including the `rowIndices.length === 0` case) so
+ * copy actions in `GridCellRenderer` can show transient feedback even when only a sticky
+ * footer row is visible.
  *
  * ### Empty state
  * When `rowData` is an empty array a centred "No Records Found" message is

@@ -11,6 +11,9 @@
  *
  * // Types (for defining column schemas on a page)
  * import type { ColumnDef, GridProps } from '@/_components/grid';
+ *
+ * // Optional: pin one row to the sticky footer
+ * // <Grid columnDefs={cols} rowData={rows} stickyFooterRowIndex={rows.length - 1} />
  */
 
 export { default as Grid } from "./Grid";

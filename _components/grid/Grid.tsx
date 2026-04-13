@@ -8,6 +8,10 @@ import GridBody from "./grid-body/GridBody";
 import GridFooter from "./grid-footer/GridFooter";
 import styles from "./grid.module.css";
 
+/**
+ * Returns a shallow-copied row array with one field updated at `rowIndex`.
+ * Used by `Grid` so `setInternalRowData` callbacks stay shallow for Sonar nesting limits.
+ */
 function replaceRowField<TData extends Record<string, unknown>>(
   rows: TData[],
   rowIndex: number,
@@ -49,6 +53,15 @@ function replaceRowField<TData extends Record<string, unknown>>(
  * pass `rowData` as the initial snapshot; the grid does not sync props back into
  * that state after mount.
  *
+ * ## Sticky footer
+ * Optional `stickyFooterRowIndex` pins one row to the bottom (`GridFooter`) when the
+ * value is an integer in range. That row is omitted from `GridBody`; it still uses
+ * the same `rowIndex` in `onCellValueChanged` as if it were in the body.
+ *
+ * ## Checkbox selection
+ * `useRowSelection` runs here so `GridBody` and `GridFooter` share one selection set
+ * for the checkbox column.
+ *
  * ## Usage
  * ```tsx
  * import { Grid } from '@/_components/grid';
@@ -65,7 +78,13 @@ function replaceRowField<TData extends Record<string, unknown>>(
  * ];
  *
  * export default function Page() {
- *   return <Grid columnDefs={columns} rowData={rows} />;
+ *   return (
+ *     <Grid
+ *       columnDefs={columns}
+ *       rowData={rows}
+ *       stickyFooterRowIndex={rows.length - 1}
+ *     />
+ *   );
  * }
  * ```
  *
@@ -73,7 +92,8 @@ function replaceRowField<TData extends Record<string, unknown>>(
  *   Defaults to `Record<string, unknown>` when not specified.
  *
  * @param props - {@link GridProps}
- * @returns The full grid including header and body wrapped in a scrollable container.
+ * @returns Header, body, optional sticky footer, and `ToastContainer` (via body), all
+ *   inside one scrollable `div` (`role="table"`).
  */
 const Grid = <TData extends Record<string, unknown> = Record<string, unknown>>({
   columnDefs,

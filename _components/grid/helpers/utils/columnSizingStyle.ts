@@ -2,8 +2,8 @@ import type { CSSProperties } from "react";
 import type { ColumnDef } from "../types/types";
 
 /**
- * Inline styles for header/body cells from column width constraints.
- * When only `maxWidth` is set (legacy), both `minWidth` and `maxWidth` use
+ * Inline styles for grid cells from column width constraints (`GridHeader`, `GridBody`,
+ * `GridFooter`). When only `maxWidth` is set (legacy), both `minWidth` and `maxWidth` use
  * that value so the column stays a fixed size.
  */
 export function getColumnCellStyle(

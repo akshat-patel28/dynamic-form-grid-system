@@ -43,15 +43,14 @@ interface GridFooterProps<
   footerRowIndex: number;
 
   /**
-   * Commits inline edits from {@link GridCellRenderer}. Invoked with the same
-   * `footerRowIndex` as `rowIndex` so consumers cannot distinguish footer from
-   * body by callback shape alone — only by the index value.
+   * Commits inline edits from `GridCellRenderer`. Invoked with `rowIndex === footerRowIndex`
+   * for footer cells; parent `Grid` forwards the same handler as for body rows.
    */
   onCellValueChange: (rowIndex: number, field: string, value: unknown) => void;
 
   /**
- * Toggles checkbox selection for `footerRowIndex`. Supplied by the parent so
- * the footer shares selection state with `GridBody`.
+   * Toggles checkbox selection for `footerRowIndex`. Supplied by the parent so
+   * the footer shares selection state with `GridBody`.
    */
   toggleRow: (rowIndex: number) => void;
 
