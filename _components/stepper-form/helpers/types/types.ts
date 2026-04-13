@@ -1,38 +1,53 @@
 /**
- * @fileoverview Public TypeScript types for the StepperForm component library.
+ * @fileoverview Shared TypeScript contracts for the stepper form feature.
  *
- * Import these types on any page or feature file when defining a field schema
- * or passing props to `<StepperForm />`.
+ * Use these types when:
+ * - Declaring a `fieldDefs` array (`FormFieldDef<T>`).
+ * - Wrapping `StepperForm` in a parent that owns `rowData` (`StepperFormProps<T>`).
+ * - Building alternate layouts that reuse the same field grid or pager props.
  *
  * @example
- * import type { FormFieldDef, StepperFormProps } from '@/_components/stepper-form';
+ * ```ts
+ * import type { FormFieldDef, StepperFormProps } from "@/_components/stepper-form";
+ * ```
  */
 
 import type { CellInputRenderer } from "@/_components/grid/helpers/constants/cellInputRenderers";
 import type { ObjectSchema } from "yup";
 
 /**
- * Defines the configuration for a single form field in the stepper form.
+ * Declares one input column in the stepper’s vertical (or two-column) field layout.
  *
- * Shares ~80% of its DNA with the grid's `ColumnDef`:
- * - `field` maps to `ColumnDef.field`
- * - `label` maps to `ColumnDef.headerName`
- * - `editable` maps to `ColumnDef.editable`
- * - `inputRenderer` maps to `ColumnDef.cellInputRenderer`
+ * @remarks
+ * **Alignment with the data grid:** Mirrors `ColumnDef` where it makes sense:
+ * | Stepper (`FormFieldDef`) | Grid (`ColumnDef`) |
+ * |--------------------------|-------------------|
+ * | `field` | `field` |
+ * | `label` | `headerName` |
+ * | `editable` | `editable` |
+ * | `inputRenderer` | `cellInputRenderer` |
  *
- * Grid-only concerns (`cellClass`, column sizing, `checkboxSelection`,
- * `valueFormatter`) are intentionally omitted. Validation is handled
- * entirely by a Yup schema passed to `<StepperForm />`.
+ * Grid-only behavior (width, `cellClassName`, selection, formatters) is omitted.
+ * **Validation** is not per-field here — supply a Yup `ObjectSchema` on `StepperForm`.
  *
- * @template TData Shape of a single row data object. Defaults to
- *   `Record<string, unknown>` when not specified.
+ * **Render pipeline:** `inputRenderer` is resolved through `resolveRenderer` in
+ * `fieldRendererMap.ts`, which lazy-loads the matching component from `@/_components/inputs`.
+ *
+ * @template TData - Row record type; `field` is constrained to keys of `TData`.
  *
  * @example
+ * ```ts
  * const fields: FormFieldDef<Person>[] = [
- *   { field: 'name',   label: 'Full Name', inputRenderer: 'textInput' },
- *   { field: 'age',    label: 'Age',       inputRenderer: 'numberInput' },
- *   { field: 'email',  label: 'Email',     inputRenderer: 'emailInput', placeholder: 'you@example.com' },
+ *   { field: "name", label: "Full Name", inputRenderer: "textInput" },
+ *   { field: "age", label: "Age", inputRenderer: "numberInput" },
+ *   {
+ *     field: "email",
+ *     label: "Email",
+ *     inputRenderer: "emailInput",
+ *     placeholder: "you@example.com",
+ *   },
  * ];
+ * ```
  */
 export interface FormFieldDef<
   TData extends Record<string, unknown> = Record<string, unknown>,
@@ -73,8 +88,8 @@ export interface FormFieldDef<
   inputRenderer?: CellInputRenderer;
 
   /**
-   * Selectable options for `"dropdownInput"` and `"radioInput"` renderers.
-   * Ignored for all other renderer types.
+   * Options list for `dropdownInput` and `radioInput` renderers only.
+   * Passed through to the dropdown and radio input components as their `options` prop.
    */
   options?: Array<{
     value: string | number;
@@ -84,92 +99,102 @@ export interface FormFieldDef<
 }
 
 /**
- * Props accepted by the `<StepperForm />` component.
+ * Top-level props for the default-export stepper form.
  *
- * @template TData Shape of a single row data object. Defaults to
- *   `Record<string, unknown>` when not specified.
+ * @remarks
+ * **Formik:** `rowData[0]` seeds `initialValues`. `enableReinitialize` stays `false` so
+ * navigation does not wipe in-progress edits; the ref store owns cross-step state.
+ *
+ * **Submit:** The submit button lives in `StepperPagination` (`type="submit"`). `onSubmit`
+ * receives **all rows** with edits merged from the store.
+ *
+ * @template TData - Same row type as each element of `rowData` and keys in `fieldDefs`.
  *
  * @example
+ * ```tsx
  * <StepperForm
  *   fieldDefs={PERSON_FIELDS}
  *   rowData={people}
  *   validationSchema={personSchema}
  *   onSubmit={(allRows) => console.log(allRows)}
  * />
+ * ```
  */
 export interface StepperFormProps<
   TData extends Record<string, unknown> = Record<string, unknown>,
 > {
   /**
-   * Field definitions that describe which inputs to render for each row.
-   * Rendered top-to-bottom (or in a responsive grid) in the order provided.
+   * Ordered list of fields to render for **every** row; order matches visual order in the grid.
    */
   fieldDefs: FormFieldDef<TData>[];
 
   /**
-   * Array of row data objects. Each element becomes one "step" in the stepper.
-   * The stepper renders the form for exactly one row at a time.
+   * One object per step. Length equals step count; only `rowData[activeStep]` is shown,
+   * but edits for other indices are kept in the internal store until submit or remount.
    */
   rowData: TData[];
 
   /**
-   * Optional Yup object schema used to validate each row's data.
-   * Passed directly to Formik's `validationSchema` prop.
-   * All validation rules (required, min, max, pattern, etc.) belong here.
+   * Optional Yup schema validating the flat row object shape (same keys as Formik values).
+   * Wired to Formik as `validationSchema`; use for required fields, min/max, regex, etc.
    */
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   validationSchema?: ObjectSchema<any>;
 
   /**
-   * Called when the user explicitly submits from the last step (or a
-   * submit-all action). Receives the complete array of all rows with
-   * any edits applied.
+   * Fires when the form submits successfully (after the active row is flushed to the store).
+   * Argument is the full `rowData` length array with user edits applied per index.
    */
   onSubmit?: (values: TData[]) => void;
 }
 
 /**
- * Props accepted by the `<StepperFormFields />` sub-component.
+ * Props for the internal field grid used by `StepperForm` (not usually imported by pages).
  *
- * @template TData Shape of a single row data object.
+ * @template TData - Row type; `rowData` should be the active row’s snapshot for `editable` functions.
  */
 export interface StepperFormFieldsProps<
   TData extends Record<string, unknown> = Record<string, unknown>,
 > {
-  /** Field definitions to render. */
+  /** Same schema as the parent `StepperForm`’s `fieldDefs`. */
   fieldDefs: FormFieldDef<TData>[];
 
-  /** The full row data for the active step (used by `editable` callbacks). */
+  /**
+   * Current row object from the parent (used when `editable` is a function of `rowData`).
+   * Formik values still come from context — this prop is for per-row edit rules only.
+   */
   rowData: TData;
 }
 
 /**
- * Props accepted by the `<StepperPagination />` sub-component.
+ * Props for the row navigation + submit strip above the field grid.
  */
 export interface StepperPaginationProps {
-  /** Zero-based index of the currently active step. */
+  /**
+   * Current step, **zero-based** (first row is `0`). UI shows one-based “Row N of M”.
+   */
   activeStep: number;
 
-  /** Total number of steps (rows). */
+  /** Same as `rowData.length` from the parent stepper. */
   totalSteps: number;
 
   /**
-   * Called when the user requests navigation to a different step.
+   * Invoked after the user moves via buttons or the jump field (already clamped to bounds).
    *
-   * @param newStep - Zero-based index of the target step.
+   * @param newStep - Zero-based destination index.
    */
   onStepChange: (newStep: number) => void;
 
   /**
-   * When `true`, all navigation controls (buttons and jump input) are
-   * disabled. Typically driven by form-level validation state so that
-   * the user must fix errors before navigating away.
+   * When `true`, disables icon buttons, jump field, and submit. Parent typically sets this
+   * from `!formik.isValid || formik.isSubmitting` so invalid rows cannot be skipped silently.
+   *
+   * @defaultValue `false`
    */
   disabled?: boolean;
 
   /**
-   * Label for the form submit button (`type="submit"`). Renders beside the
-   * stepper controls and triggers the wrapping form’s submit handler.
+   * Text on the `Button` with `type="submit"` (must stay inside the surrounding `<form>`).
    *
    * @defaultValue `"Submit"`
    */

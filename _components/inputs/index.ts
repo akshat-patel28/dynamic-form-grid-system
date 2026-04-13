@@ -1,12 +1,27 @@
 /**
- * @fileoverview Public entry point for shared input components.
+ * @fileoverview Public barrel for MUI-based form inputs used across the app.
  *
- * Import any input component and its props type from this single path so that
- * internal file locations remain an implementation detail.
+ * **Exports**
+ * - Components: {@link TextInput}, {@link TextAreaInput}, {@link DropdownInput},
+ *   {@link CheckboxInput}, {@link RadioInput}, {@link SwitchInput}
+ * - Types: matching `*Props` interfaces plus {@link DropdownOption} and {@link RadioOption}
+ *
+ * **Why a barrel**
+ * Consumers import from `@/_components/inputs` only. File paths under this folder
+ * can change without updating every import site.
+ *
+ * **Stack**
+ * All components are `"use client"` wrappers around Material UI. They accept the
+ * corresponding MUI prop surfaces (with small opinionated defaults such as
+ * `size="small"` and `fullWidth` where applicable).
+ *
+ * @see {@link https://mui.com/material-ui/} MUI component documentation
  *
  * @example
+ * ```tsx
  * import { TextInput, DropdownInput } from "@/_components/inputs";
  * import type { TextInputProps, DropdownOption } from "@/_components/inputs";
+ * ```
  */
 
 export { default as TextInput } from "./TextInput";

@@ -10,28 +10,38 @@ import type { FormControlLabelProps } from "@mui/material/FormControlLabel";
 /**
  * Props for the {@link SwitchInput} component.
  *
- * Extends MUI `SwitchProps` so every native Switch prop is available.
+ * @remarks
+ * Extends MUI `Switch` props. Same wrapper pattern as {@link CheckboxInput}: without
+ * `label` and `helperText`, only the switch element is returned.
  */
 export interface SwitchInputProps extends SwitchProps {
-  /** Label displayed next to the switch. When omitted the switch renders standalone. */
+  /**
+   * Optional; when set, uses `FormControlLabel` with `labelPlacement`.
+   * Omit for standalone toggles (e.g. grid cells).
+   */
   label?: FormControlLabelProps["label"];
-  /** Placement of the label relative to the switch. @default "end" */
+  /**
+   * MUI label position relative to the thumb (`end`, `start`, `top`, `bottom`).
+   * @defaultValue `"end"`
+   */
   labelPlacement?: FormControlLabelProps["labelPlacement"];
-  /** Helper / error text rendered below the switch. */
+  /** Shown under the switch when wrapped in `FormControl`. */
   helperText?: string;
-  /** When `true`, helper text is styled as an error. */
+  /** Sets `FormControl` error state for helper text color. */
   error?: boolean;
-  /** Extra class applied to the outer wrapper. */
+  /** On the outer `FormControl` when a wrapper is rendered. */
   wrapperClassName?: string;
 }
 
 /**
- * SwitchInput
+ * Boolean toggle using MUI `Switch`, optionally with label and helper text.
  *
- * A toggle switch built on MUI `Switch` with optional label and helper text.
+ * @remarks
+ * Prefer over `Checkbox` when the UX should read as an on/off setting rather than
+ * “select this item”.
  *
- * Works in both **form layouts** (with label + helper) and
- * **grid inline-edit** (standalone) scenarios.
+ * @param props - {@link SwitchInputProps}
+ * @returns `Switch` or `FormControl` + `FormControlLabel` + optional helper.
  *
  * @example
  * ```tsx

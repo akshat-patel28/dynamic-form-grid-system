@@ -1,23 +1,24 @@
 /**
- * @fileoverview Row-level stepper navigation bar for the stepper form.
+ * @fileoverview In-form controls to move between records (rows) of the current batch.
  *
- * Provides controls for moving between rows (steps) **within the
- * current page of data**:
- * - First / Previous / Next / Last icon buttons
- * - "Row X of Y" label
- * - Compact text field for direct row-number jump
- * - Submit button (`type="submit"`) wired to the parent form; disabled when
- *   `disabled` is true (e.g. validation errors on the active row)
+ * @remarks
+ * **Not API pagination:** Changing rows here does not fetch a new HTTP page. Combine with
+ * `@/_components/pagination` (or your router) when the dataset is paged server-side.
  *
- * API-level pagination (fetching new pages of data) is handled
- * separately at the page level, not here.
+ * **Indices:** Props use **zero-based** `activeStep`; the UI shows **one-based** “Row N of M”.
+ * The jump field accepts one-based numbers and converts internally.
+ *
+ * **Submit:** The contained `Button` uses `type="submit"` and must stay inside the `StepperForm`
+ * `<form>` so Formik’s `handleSubmit` runs.
  *
  * @example
+ * ```tsx
  * <StepperPagination
  *   activeStep={0}
  *   totalSteps={10}
  *   onStepChange={(step) => setActiveStep(step)}
  * />
+ * ```
  */
 
 "use client";
@@ -36,33 +37,38 @@ import NavigateNextIcon from "@mui/icons-material/NavigateNext";
 
 import type { StepperPaginationProps } from "../helpers/types/types";
 
-/** MUI disabled buttons often keep default cursor; use not-allowed for clarity. */
+/**
+ * `sx` fragment: MUI leaves default cursor on disabled icon buttons; this shows `not-allowed`.
+ */
 const disabledCursorSx = {
   "&.Mui-disabled": { cursor: "not-allowed" },
 } as const;
 
-/** Lets tooltips receive hover when the wrapped IconButton is `disabled`. */
+/**
+ * Wrapper `Box` style so `Tooltip` can still receive pointer events around a disabled `IconButton`.
+ */
 const tooltipIconWrapSx = { display: "inline-flex" } as const;
 
 /**
- * StepperPagination
- *
- * Renders a navigation bar for stepping between rows within the current
- * dataset. All indices are **zero-based** internally but displayed as
- * **one-based** to the user (e.g. "Row 1 of 10").
- *
- * This component only handles **row navigation** — it does not trigger
- * API calls. API-level pagination lives at the page level.
+ * Toolbar: first/prev/next/last, row label, numeric jump, and submit.
  *
  * @param props - {@link StepperPaginationProps}
- * @returns The stepper navigation bar.
+ * @returns A flex `Box` row of controls.
+ *
+ * @remarks
+ * **Jump field:** Local React state `jumpValue` holds the in-progress string; Enter parses
+ * a one-based row, calls `goTo(parsed - 1)`, then clears the input. Invalid numbers are ignored.
+ *
+ * **Disabled shell:** When `disabled`, the outer `Box` sets `cursor: not-allowed` for affordance.
  *
  * @example
+ * ```tsx
  * <StepperPagination
  *   activeStep={currentStep}
  *   totalSteps={people.length}
  *   onStepChange={handleStepChange}
  * />
+ * ```
  */
 const StepperPagination = ({
   activeStep,
@@ -71,16 +77,16 @@ const StepperPagination = ({
   disabled = false,
   submitLabel = "Submit",
 }: StepperPaginationProps) => {
+  /** Uncontrolled string for the “Go to” number field until Enter commits. */
   const [jumpValue, setJumpValue] = useState("");
 
   const isFirst = activeStep === 0;
   const isLast = activeStep === totalSteps - 1;
 
   /**
-   * Navigates to the given zero-based step index after clamping
-   * it within valid bounds.
+   * Clamps `step` to `[0, totalSteps - 1]` and notifies the parent.
    *
-   * @param step - Desired zero-based step index.
+   * @param step - Desired zero-based index (may be out of range before clamping).
    */
   const goTo = (step: number) => {
     const clamped = Math.max(0, Math.min(totalSteps - 1, step));

@@ -6,23 +6,37 @@ import type { TextFieldProps } from "@mui/material/TextField";
 /**
  * Props for the {@link TextInput} component.
  *
- * Extends MUI `TextFieldProps` so every native TextField prop is available.
- * The `type` prop defaults to `"text"` but can be set to `"number"` to
- * render a numeric input — both variants share the same component.
+ * @remarks
+ * Extends MUI {@link https://mui.com/material-ui/api/text-field/ TextField} props
+ * (except `variant`, which is re-declared below for documentation). You may pass any
+ * `TextField` prop: `label`, `value`, `onChange`, `error`, `helperText`, `InputProps`,
+ * `inputProps`, `slotProps`, etc.
+ *
+ * Use {@link TextAreaInput} for multiline content; this component is intended for
+ * single-line (or numeric/date when `type` is set) entry.
  */
 export interface TextInputProps extends Omit<TextFieldProps, "variant"> {
-  /** MUI variant applied to the field. @default "outlined" */
+  /**
+   * MUI TextField visual variant (`outlined`, `filled`, `standard`).
+   * @defaultValue `"outlined"`
+   */
   variant?: TextFieldProps["variant"];
 }
 
 /**
- * TextInput
+ * Single-line text (and related HTML types) input backed by MUI `TextField`.
  *
- * A unified text / number input built on MUI `TextField`.
- * Pass `type="number"` for numeric entry; defaults to plain text.
+ * @remarks
+ * **Defaults:** `variant="outlined"`, `size="small"`, `fullWidth={true}` — suitable
+ * for dense forms and data grids. Override when embedding in tight layouts.
  *
- * Designed to work in both **form layouts** (full-width with labels) and
- * **grid inline-edit** (compact, no label) scenarios.
+ * **Numeric and specialized types:** Set `type="number"`, `"email"`, `"date"`, etc.
+ * Validation is still the caller’s responsibility (e.g. Yup, native `min`/`max`).
+ *
+ * **Controlled usage:** Typical pattern is `value` + `onChange` from React state or Formik.
+ *
+ * @param props - {@link TextInputProps}
+ * @returns A MUI `TextField` element.
  *
  * @example
  * ```tsx

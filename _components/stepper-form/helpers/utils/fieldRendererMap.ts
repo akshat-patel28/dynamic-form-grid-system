@@ -1,10 +1,17 @@
 /**
- * @fileoverview Maps `CellInputRenderer` identifiers to dynamically imported
- * input components from `@/_components/inputs`.
+ * @fileoverview Bridge between grid `CellInputRenderer` keys and shared input widgets.
  *
- * Each component is wrapped with `next/dynamic` so its code is only
- * downloaded when it is actually rendered — unused input types add zero
- * bytes to the initial bundle.
+ * @remarks
+ * **Code splitting:** Every mapped component is loaded via `next/dynamic` from
+ * `@/_components/inputs`, so a page that only uses text fields never downloads
+ * radio/switch/dropdown chunks until those renderers appear in `fieldDefs`.
+ *
+ * **Consumers:** `StepperFormFields` calls {@link resolveRenderer} per field; the grid
+ * may use the same constants from `cellInputRenderers.ts`.
+ *
+ * **Metadata:** {@link RendererEntry} carries a `group` string consumed by
+ * `buildFieldProps` in `StepperFormFields.tsx` to shape Formik-friendly props
+ * (`value` vs `checked`, `options`, `type`, etc.).
  */
 
 import dynamic from "next/dynamic";
@@ -35,13 +42,21 @@ const DynamicSwitchInput = dynamic(
 );
 
 /**
- * Resolved entry returned by {@link resolveRenderer}.
- *
- * `Component` is the lazily-loaded React component and `group` classifies
- * the renderer so the caller can build the right prop bag.
+ * Output of {@link resolveRenderer}: which React component to mount and how to wire it.
  */
 export interface RendererEntry {
+  /**
+   * Lazy `next/dynamic` wrapper around a default export from `@/_components/inputs`.
+   */
   Component: ElementType;
+  /**
+   * Discriminator for prop construction in `StepperFormFields.buildFieldProps`.
+   * - `text` — `TextInput` with optional `type` from `htmlInputType`
+   * - `textarea` — `TextAreaInput`
+   * - `dropdown` — `DropdownInput` (+ `options`)
+   * - `checkbox` / `switch` — boolean `checked` wiring
+   * - `radio` — `RadioInput` (+ `options`)
+   */
   group:
     | "text"
     | "textarea"
@@ -49,9 +64,15 @@ export interface RendererEntry {
     | "checkbox"
     | "radio"
     | "switch";
+  /**
+   * For `group === "text"`, forwarded as MUI `TextField` `type` (`text`, `number`, `email`, `date`, …).
+   */
   htmlInputType?: string;
 }
 
+/**
+ * Static lookup from each `CELL_INPUT_RENDERERS` constant to its lazy component + metadata.
+ */
 const RENDERER_MAP: Record<CellInputRenderer, RendererEntry> = {
   [CELL_INPUT_RENDERERS.TEXT_INPUT]: {
     Component: DynamicTextInput,
@@ -95,13 +116,17 @@ const RENDERER_MAP: Record<CellInputRenderer, RendererEntry> = {
   },
 };
 
+/**
+ * Fallback when `renderer` is missing or unknown — plain text `TextInput`.
+ */
 const DEFAULT_ENTRY: RendererEntry =
   RENDERER_MAP[CELL_INPUT_RENDERERS.TEXT_INPUT];
 
 /**
- * Returns the dynamically-imported component and metadata for a given
- * renderer identifier. Falls back to {@link DynamicTextInput} when
- * `renderer` is `undefined` or unrecognised.
+ * Looks up the lazy input component and wiring metadata for a renderer key.
+ *
+ * @param renderer - A `CellInputRenderer` value from field defs, or `undefined` to use the default.
+ * @returns A {@link RendererEntry}; never throws — unknown keys map to `TEXT_INPUT`.
  */
 export function resolveRenderer(
   renderer: CellInputRenderer | undefined,

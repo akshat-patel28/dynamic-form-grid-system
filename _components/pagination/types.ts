@@ -1,46 +1,65 @@
 /**
- * @fileoverview Types for the standalone DataPagination component.
+ * @fileoverview Type definitions for {@link DataPaginationProps}.
+ *
+ * Keeps the public contract in one place so both the component implementation
+ * and consumers share a single source of truth.
  *
  * @example
- * import type { DataPaginationProps } from '@/_components/pagination';
+ * ```ts
+ * import type { DataPaginationProps } from "@/_components/pagination";
+ *
+ * const props: DataPaginationProps = {
+ *   page: 1,
+ *   totalPages: 10,
+ *   totalItems: 97,
+ *   onPageChange: (p) => console.log(p),
+ * };
+ * ```
  */
 
 /**
- * Props accepted by the `<DataPagination />` component.
+ * Public props for the default-export pagination bar component.
  *
- * All page values are **one-based** to match MUI `<Pagination />`
- * and typical REST API `?page=N` conventions.
+ * @remarks
+ * **One-based pages:** Matches MUI
+ * {@link https://mui.com/material-ui/api/pagination/ Pagination}’s `page` / `count`
+ * semantics and common REST query params (`?page=1` is the first page).
+ *
+ * **Parent responsibilities:** This component does not fetch data. When `onPageChange`
+ * fires, the parent should update server/query state, set `page` from the response,
+ * and pass new `totalPages` / `totalItems` when known.
+ *
+ * **Empty state:** If `totalPages <= 0`, the component returns `null` (no UI).
  */
 export interface DataPaginationProps {
   /**
-   * The currently active page (one-based).
+   * Active page index, **one-based** (first page is `1`).
+   * Should stay in sync with your API or cursor logic.
    */
   page: number;
 
   /**
-   * Total number of pages available.
-   * When `<= 0` the component renders nothing.
+   * Total page count (`Pagination`’s `count`). If `0` or negative, nothing is rendered.
    */
   totalPages: number;
 
   /**
-   * Optional total item count displayed in the summary label.
-   * When omitted the "(N total)" suffix is hidden.
+   * Optional grand total of items across all pages. When set, the summary line appends
+   * `(N total)` after “Page X of Y”. Omit to hide the count (e.g. unknown total).
    */
   totalItems?: number;
 
   /**
-   * When `true`, the pagination controls are visually disabled
-   * (e.g. during a loading state).
+   * Disables the MUI `Pagination` control (e.g. while `isLoading`).
    *
-   * @default false
+   * @defaultValue `false`
    */
   disabled?: boolean;
 
   /**
-   * Called when the user selects a different page.
+   * Invoked after the user picks a page in the control.
    *
-   * @param page - One-based page number the user navigated to.
+   * @param page - One-based destination page (same convention as `page` prop).
    */
   onPageChange: (page: number) => void;
 }

@@ -6,20 +6,30 @@ import type { TextFieldProps } from "@mui/material/TextField";
 /**
  * Props for the {@link TextAreaInput} component.
  *
- * Extends MUI `TextFieldProps` with sensible multiline defaults.
+ * @remarks
+ * Same surface as MUI `TextField` (minus re-declared `variant`). The component always
+ * sets `multiline` and a default `minRows`; you can still pass `rows`, `maxRows`,
+ * `minRows`, or `slotProps` to tune height and resize behavior per MUI docs.
  */
 export interface TextAreaInputProps extends Omit<TextFieldProps, "variant"> {
-  /** MUI variant applied to the field. @default "outlined" */
+  /**
+   * MUI TextField visual variant.
+   * @defaultValue `"outlined"`
+   */
   variant?: TextFieldProps["variant"];
 }
 
 /**
- * TextAreaInput
+ * Multiline text area built on MUI `TextField` with `multiline` forced on.
  *
- * A multiline text area built on MUI `TextField` with `multiline` enabled.
+ * @remarks
+ * **Defaults:** `variant="outlined"`, `size="small"`, `fullWidth={true}`, `minRows={3}`.
+ * Pass explicit `rows` / `maxRows` / `minRows` to override vertical sizing.
  *
- * Use for longer free-text content such as descriptions or notes.
- * Works in both **form layouts** and **grid inline-edit** contexts.
+ * **Use cases:** Descriptions, notes, comments — anywhere a single line is insufficient.
+ *
+ * @param props - {@link TextAreaInputProps}
+ * @returns A MUI `TextField` configured as a textarea.
  *
  * @example
  * ```tsx

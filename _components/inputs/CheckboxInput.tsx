@@ -10,26 +10,38 @@ import type { FormControlLabelProps } from "@mui/material/FormControlLabel";
 /**
  * Props for the {@link CheckboxInput} component.
  *
- * Extends MUI `CheckboxProps` so every native Checkbox prop is available.
+ * @remarks
+ * Extends MUI `Checkbox` props (`checked`, `onChange`, `name`, `inputProps`, etc.).
+ * `className` applies to the `Checkbox` itself; use `wrapperClassName` for the
+ * optional `FormControl` wrapper when label or helper text is present.
  */
 export interface CheckboxInputProps extends CheckboxProps {
-  /** Label displayed next to the checkbox. When omitted the checkbox renders standalone. */
+  /**
+   * Optional label; when set, wraps the checkbox in `FormControlLabel`.
+   * When both `label` and `helperText` are omitted, returns the raw `Checkbox` only
+   * (useful for tight table cells).
+   */
   label?: FormControlLabelProps["label"];
-  /** Helper / error text rendered below the checkbox. */
+  /** Rendered under the control inside `FormHelperText` when `FormControl` is used. */
   helperText?: string;
-  /** When `true`, helper text is styled as an error. */
+  /** Sets `FormControl` `error` so helper text uses the error color. */
   error?: boolean;
-  /** Extra class applied to the outer wrapper. */
+  /** Applied to the outer `FormControl` when label or helper text requires a wrapper. */
   wrapperClassName?: string;
 }
 
 /**
- * CheckboxInput
+ * Checkbox with optional label and helper text, backed by MUI `Checkbox`.
  *
- * A checkbox field built on MUI `Checkbox` with optional label and helper text.
+ * @remarks
+ * **Rendering branches:** No label and no helper → plain `Checkbox`. Otherwise →
+ * `FormControl` containing `FormControlLabel` and optional `FormHelperText`.
  *
- * Works in both **form layouts** (with label + helper text) and
- * **grid inline-edit** (standalone, no label) scenarios.
+ * **Form libraries:** With Formik, use `checked` + `onChange` (or `field` spread)
+ * consistent with MUI’s controlled checkbox pattern.
+ *
+ * @param props - {@link CheckboxInputProps}
+ * @returns `Checkbox`, or `FormControl` wrapping label + checkbox + helper.
  *
  * @example
  * ```tsx

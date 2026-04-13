@@ -1,13 +1,14 @@
 /**
- * @fileoverview Standalone data-pagination component.
+ * @fileoverview Client-side pagination UI (MUI) with optional item count summary.
  *
- * A reusable, API-agnostic pagination bar built on MUI `<Pagination />`.
- * It is completely independent of any form or grid — it simply tells the
- * parent which page the user selected and displays the current position.
+ * @remarks
+ * **Scope:** Presents page controls and a short text summary only. It does not know
+ * about grids, steppers, or URLs — wire `onPageChange` to your data layer.
  *
- * The parent is responsible for fetching data when the page changes.
+ * **Accessibility:** Delegates keyboard and ARIA behavior to MUI `Pagination`.
  *
  * @example
+ * ```tsx
  * <DataPagination
  *   page={apiPage}
  *   totalPages={9}
@@ -15,6 +16,7 @@
  *   disabled={loading}
  *   onPageChange={(page) => setApiPage(page)}
  * />
+ * ```
  */
 
 "use client";
@@ -26,19 +28,20 @@ import Typography from "@mui/material/Typography";
 import type { DataPaginationProps } from "./types";
 
 /**
- * DataPagination
+ * Renders MUI `Pagination` plus a secondary `Typography` line: `Page {page} of {totalPages}`
+ * and, when `totalItems` is defined, ` ({totalItems} total)`.
  *
- * Renders an MUI `<Pagination />` bar with an optional summary label
- * ("Page X of Y (Z total)"). Works the same way regardless of whether
- * the consuming page renders a grid, a stepper form, or a plain list.
+ * @remarks
+ * **Early exit:** Returns `null` if `totalPages <= 0` so callers need not branch in JSX.
  *
- * All page numbers are **one-based** (matching the MUI convention and
- * typical REST API `?page=N` parameters).
+ * **Styling:** Uses a flex `Box` with `gap` and `flexWrap` so the summary wraps on
+ * narrow viewports.
  *
  * @param props - {@link DataPaginationProps}
- * @returns The pagination bar, or `null` when there are no pages to show.
+ * @returns Pagination row element, or `null` when `totalPages` is not positive.
  *
  * @example
+ * ```tsx
  * <DataPagination
  *   page={currentPage}
  *   totalPages={totalPages}
@@ -46,6 +49,7 @@ import type { DataPaginationProps } from "./types";
  *   disabled={isLoading}
  *   onPageChange={(p) => setCurrentPage(p)}
  * />
+ * ```
  */
 const DataPagination = ({
   page,
@@ -57,10 +61,10 @@ const DataPagination = ({
   if (totalPages <= 0) return null;
 
   /**
-   * Forwards MUI's page-change event to the consumer.
+   * Adapts MUI `Pagination`’s `(event, page)` signature to the simpler `onPageChange(page)` API.
    *
-   * @param _event - React synthetic event (unused).
-   * @param value  - One-based page number selected by the user.
+   * @param _event - MUI passes a change event; unused here.
+   * @param value - One-based page index from MUI (matches {@link DataPaginationProps.page}).
    */
   const handleChange = (
     _event: React.ChangeEvent<unknown>,

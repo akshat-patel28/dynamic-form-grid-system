@@ -1,12 +1,18 @@
 /**
- * @fileoverview Public entry point for the StepperForm component library.
+ * @fileoverview Barrel for the stepper-style multi-row form (Formik + lazy inputs).
  *
- * Import the component and its types from this single path so that internal
- * file locations remain an implementation detail.
+ * **Default export:** `StepperForm` — main container.
+ * **Types:** `FormFieldDef`, `StepperFormProps`, `StepperFormFieldsProps`, `StepperPaginationProps`.
+ *
+ * **Related modules:** Field rendering uses the `resolveRenderer` helper in
+ * `helpers/utils/fieldRendererMap` (not re-exported here). Dataset-level paging is
+ * separate; use `@/_components/pagination` for API page controls.
  *
  * @example
- * import StepperForm from '@/_components/stepper-form';
- * import type { FormFieldDef, StepperFormProps } from '@/_components/stepper-form';
+ * ```tsx
+ * import StepperForm from "@/_components/stepper-form";
+ * import type { FormFieldDef, StepperFormProps } from "@/_components/stepper-form";
+ * ```
  */
 
 export { default } from "./StepperForm";

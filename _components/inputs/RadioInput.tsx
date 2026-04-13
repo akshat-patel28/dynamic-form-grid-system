@@ -10,49 +10,57 @@ import type { RadioGroupProps } from "@mui/material/RadioGroup";
 import type { RadioProps } from "@mui/material/Radio";
 
 /**
- * A single option rendered inside the radio group.
+ * One choice in a {@link RadioInput} group.
+ *
+ * @remarks
+ * `value` must be unique within the group and matches `RadioGroup`’s controlled `value`.
  */
 export interface RadioOption {
-  /** The value associated with this radio button. */
+  /** Value submitted / held in group state when this option is selected. */
   value: string | number;
-  /** Human-readable label rendered next to the radio button. */
+  /** Text beside the radio control via `FormControlLabel`. */
   label: string;
-  /** When `true`, this option is visible but not selectable. */
+  /** If `true`, only this option is non-interactive; siblings may still be enabled. */
   disabled?: boolean;
 }
 
 /**
  * Props for the {@link RadioInput} component.
  *
- * Extends MUI `RadioGroupProps` so every native RadioGroup prop is available.
+ * @remarks
+ * Inherits `RadioGroup` props (`value`, `onChange`, `row` for horizontal layout, `name`,
+ * etc.). The group is wrapped in `FormControl` with optional `FormLabel` and
+ * `FormHelperText`.
  */
 export interface RadioInputProps extends RadioGroupProps {
-  /** Group label displayed above the radio buttons. */
+  /** Optional `FormLabel` above the group (fieldset legend semantics). */
   label?: string;
-  /** List of selectable options. */
+  /** Each entry becomes `FormControlLabel` + `Radio` inside `RadioGroup`. */
   options: RadioOption[];
-  /** Helper / error text rendered below the group. */
+  /** Secondary text below the group; use with `error` for validation messages. */
   helperText?: string;
-  /** When `true`, the group is styled as having an error. */
+  /** Passed to `FormControl`; affects label and helper styling. */
   error?: boolean;
-  /** When `true`, the group is disabled. */
+  /** Disables the entire group when `true`. */
   disabled?: boolean;
-  /** When `true`, the group is marked as required. */
+  /** Marks the group required for assistive tech / visual indicator. */
   required?: boolean;
-  /** Props forwarded to every MUI `Radio` element. */
+  /** Spread onto every `Radio` (e.g. `size="small"`); per-option `disabled` stays on options. */
   radioProps?: Omit<RadioProps, "value" | "disabled">;
-  /** Extra class applied to the outer `FormControl`. */
+  /** Class on the outer `FormControl`. */
   wrapperClassName?: string;
 }
 
 /**
- * RadioInput
+ * Accessible radio group: `FormControl` + `FormLabel` + `RadioGroup` + options.
  *
- * A radio-button group built on MUI `RadioGroup` with label, helper text, and
- * error support.
+ * @remarks
+ * **Layout:** Pass MUI `RadioGroup` `row` for a single row (common in grids).
  *
- * Works in both **form layouts** (vertical, with label) and **grid inline-edit**
- * (horizontal, compact) scenarios.
+ * **Controlled:** Parent owns `value`; `onChange` receives the selected option’s `value`.
+ *
+ * @param props - {@link RadioInputProps}
+ * @returns The full radio group UI subtree.
  *
  * @example
  * ```tsx

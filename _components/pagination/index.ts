@@ -1,12 +1,17 @@
 /**
- * @fileoverview Public entry point for the DataPagination component.
+ * @fileoverview Barrel for the standalone pagination widget.
  *
- * Import the component and its props type from this single path so that
- * internal file locations remain an implementation detail.
+ * **Default export:** `DataPagination` — MUI pagination + “Page X of Y” copy.
+ * **Named type export:** {@link DataPaginationProps}.
+ *
+ * For row stepping inside a multi-record form, use `@/_components/stepper-form`
+ * (`StepperPagination`) instead; this module is for **dataset / API page** navigation.
  *
  * @example
- * import DataPagination from '@/_components/pagination';
- * import type { DataPaginationProps } from '@/_components/pagination';
+ * ```tsx
+ * import DataPagination from "@/_components/pagination";
+ * import type { DataPaginationProps } from "@/_components/pagination";
+ * ```
  */
 
 export { default } from "./DataPagination";

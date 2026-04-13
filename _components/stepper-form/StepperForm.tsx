@@ -1,26 +1,30 @@
 /**
- * @fileoverview Main StepperForm component.
+ * @fileoverview Multi-row editor: one Formik instance, one visible row at a time.
  *
- * Combines Formik for state management, `StepperFormFields` for rendering
- * the active row's inputs, and `StepperPagination` for navigating between
- * rows.
+ * **Pieces**
+ * - `StepperFormInner`: Formik, `activeStep`, and a ref-based map of each row’s
+ *   latest values (`rowStoreRef`).
+ * - `StepperFormFields`: Renders inputs for the active row from `fieldDefs`.
+ * - `StepperPagination`: First/prev/next/last, jump-to-row, and submit button.
  *
- * **Core design:** Only the active row is rendered. A `useRef`-based
- * normalised store persists every row's values across step changes so
- * that Formik only ever manages a single flat object (the current row).
+ * **Why a ref store:** Formik holds only the current row’s shape. On step change,
+ * current values are written to `rowStoreRef`, the next row is loaded with
+ * `setValues`, and `setTouched({})` clears stale errors from the previous row.
  *
- * When the parent provides a new `rowData` array (e.g. after an API
- * page change), the outer `StepperForm` wrapper supplies a fresh
- * `key` which remounts the inner component, resetting the store and
- * active step cleanly without `useEffect` + `setState`.
+ * **Remount rule:** The exported `StepperForm` wraps the inner implementation with
+ * `key={props.rowData.length}`. When the **number of rows** changes, React remounts
+ * the inner tree so the store and `activeStep` reset without an effect-driven state sync.
+ * (Replacing `rowData` with the same length does not remount via this key alone.)
  *
  * @example
+ * ```tsx
  * <StepperForm
  *   fieldDefs={PERSON_FIELDS}
  *   rowData={people}
  *   validationSchema={personSchema}
  *   onSubmit={(allRows) => savePeople(allRows)}
  * />
+ * ```
  */
 
 "use client";
@@ -35,16 +39,20 @@ import StepperPagination from "./stepper-pagination/StepperPagination";
 import type { StepperFormProps } from "./helpers/types/types";
 
 /**
- * StepperFormInner
+ * Stateful implementation: Formik + row index + persisted edits per row index.
  *
- * Contains all the stateful logic (Formik, activeStep, rowStore).
- * Mounted fresh every time `rowData` identity changes via the `key`
- * applied by the outer `StepperForm` wrapper.
+ * @remarks
+ * **Navigation:** `handleStepChange` persists `formik.values` to `rowStoreRef` at the
+ * current `activeStep`, applies the target row from the store (or `rowData` fallback),
+ * clears touched fields, then updates `activeStep`.
  *
- * @template TData Shape of a single row data object.
+ * **Submit:** `handleFormikSubmit` writes the active row to the store, builds
+ * `allRows` by merging store + original `rowData`, and invokes optional `onSubmit`.
+ *
+ * @template TData - Per-row record shape; must be compatible with `fieldDefs` keys.
  *
  * @param props - {@link StepperFormProps}
- * @returns The rendered stepper form.
+ * @returns Form element containing header, `StepperPagination`, and `StepperFormFields`.
  */
 const StepperFormInner = <
   TData extends Record<string, unknown> = Record<string, unknown>,
@@ -54,26 +62,30 @@ const StepperFormInner = <
   validationSchema,
   onSubmit,
 }: StepperFormProps<TData>) => {
-  /** Zero-based index of the currently visible row / step. */
+  /**
+   * Index of the row currently shown (0 .. `rowData.length - 1`).
+   * Drives which slice of `rowStoreRef` is loaded into Formik.
+   */
   const [activeStep, setActiveStep] = useState(0);
 
   /**
-   * Normalised store holding every row's latest values.
-   * Keyed by row index. Initialised from `rowData` on mount.
+   * Mutable map: row index → last known form values for that row.
+   * Seeded on mount from `rowData`; updated on step change and on submit.
    */
   const rowStoreRef = useRef<Record<number, TData>>(
     Object.fromEntries(rowData.map((row, i) => [i, { ...row }])),
   );
 
   /**
-   * Handles step navigation.
+   * Persists the active row, hydrates Formik with the target row, clears touched state.
    *
-   * 1. Persists current Formik values into the store.
-   * 2. Loads the target row into Formik.
-   * 3. Resets touched state so errors from the previous row do not bleed.
+   * @param newStep - Zero-based destination index (clamped by `StepperPagination` before call).
+   * @param currentValues - Snapshot from `formik.values` at navigation time.
+   * @param helpers - Formik helpers for `setValues` / `setTouched`.
    *
-   * Wrapped in `useCallback` because it closes over `activeStep` and is
-   * passed as a prop to `<StepperPagination />`.
+   * @remarks
+   * Memoized with `useCallback` because it is passed into `StepperPagination` and depends
+   * on `activeStep` and `rowData`.
    */
   const handleStepChange = useCallback(
     (newStep: number, currentValues: TData, helpers: FormikHelpers<TData>) => {
@@ -88,13 +100,10 @@ const StepperFormInner = <
   );
 
   /**
-   * Formik `onSubmit` handler.
+   * Formik submit: merge active row into store, optionally notify parent with full list.
    *
-   * Saves the current row into the store, then calls the consumer's
-   * `onSubmit` with the complete row array (all edits applied).
-   *
-   * @param values  - Current row's Formik values.
-   * @param helpers - Formik helpers for post-submit actions.
+   * @param values - Submitted values for the row that was active when submit fired.
+   * @param helpers - Used to call `setSubmitting(false)` after optional `onSubmit`.
    */
   const handleFormikSubmit = (values: TData, helpers: FormikHelpers<TData>) => {
     rowStoreRef.current[activeStep] = values;
@@ -148,17 +157,18 @@ const StepperFormInner = <
 };
 
 /**
- * StepperForm
+ * Public API: empty guard + `key` on inner form so row **count** changes reset state.
  *
- * Public wrapper that forces a full remount of `StepperFormInner` whenever
- * the `rowData` reference changes (e.g. after an API page change).
- * This avoids `useEffect` + `setState` cascading-render patterns by
- * using React's `key` mechanism to reset all internal state cleanly.
+ * @remarks
+ * **Empty `rowData`:** Renders a short “No data available.” message (no Formik).
  *
- * @template TData Shape of a single row data object.
+ * **Reset behavior:** `key={props.rowData.length}` remounts `StepperFormInner` when the
+ * array length changes. Same length with different row identities does not reset via this key.
+ *
+ * @template TData - Row object type aligned with `fieldDefs` and `validationSchema`.
  *
  * @param props - {@link StepperFormProps}
- * @returns The stepper form, or an empty-state message when `rowData` is empty.
+ * @returns Stepper UI or empty placeholder.
  */
 const StepperForm = <
   TData extends Record<string, unknown> = Record<string, unknown>,

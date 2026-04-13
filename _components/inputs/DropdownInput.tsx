@@ -9,40 +9,59 @@ import type { SelectProps } from "@mui/material/Select";
 import type { FormControlProps } from "@mui/material/FormControl";
 
 /**
- * A single option rendered inside the dropdown.
+ * One entry in the {@link DropdownInput} options list.
+ *
+ * @remarks
+ * `value` is what MUI `Select` stores (and what you typically persist). `label` is
+ * shown in the closed field and in the menu. Keep `value` stable across renders for
+ * controlled selects.
  */
 export interface DropdownOption {
-  /** The underlying value stored when this option is selected. */
+  /** Stored form value when this option is selected (MUI `MenuItem` `value`). */
   value: string | number;
-  /** Human-readable label displayed in the menu. */
+  /** Display string in the menu and, with a `label` on the parent, in the field. */
   label: string;
-  /** When `true`, the option is visible but not selectable. */
+  /** If `true`, the option appears grayed out and cannot be chosen. */
   disabled?: boolean;
 }
 
 /**
  * Props for the {@link DropdownInput} component.
  *
- * Extends MUI `SelectProps` so every native Select prop is available.
+ * @remarks
+ * Built from MUI `Select` inside `FormControl`. Most `SelectProps` apply to the inner
+ * `Select`; `error`, `disabled`, `required`, `fullWidth`, and `size` are applied to
+ * `FormControl` for consistent layout and accessibility. Use `formControlProps` for
+ * margins, `sx`, `className`, etc., without overriding those controlled props.
  */
 export interface DropdownInputProps extends Omit<SelectProps, "variant"> {
-  /** MUI variant applied to the field. @default "outlined" */
+  /**
+   * MUI `FormControl` / `Select` variant (`outlined`, `filled`, `standard`).
+   * @defaultValue `"outlined"`
+   */
   variant?: SelectProps["variant"];
-  /** List of selectable options. */
+  /** Options rendered as `MenuItem` children, in array order. */
   options: DropdownOption[];
-  /** Helper / error text rendered below the select. */
+  /** Shown below the control via `FormHelperText`; pair with `error` for validation UI. */
   helperText?: string;
-  /** Props forwarded to the wrapping `FormControl`. */
+  /**
+   * Spread onto the outer `FormControl`. Cannot set `error`, `disabled`, `required`,
+   * `fullWidth`, or `size` here — those come from top-level props.
+   */
   formControlProps?: Omit<FormControlProps, "error" | "disabled" | "required" | "fullWidth" | "size">;
 }
 
 /**
- * DropdownInput
+ * Labeled select (dropdown) using MUI `FormControl` + `Select` + `MenuItem`.
  *
- * A select / dropdown field built on MUI `Select` wrapped in a `FormControl`
- * with label and optional helper text.
+ * @remarks
+ * **Label:** When `label` is provided, an `InputLabel` is rendered and passed to
+ * `Select` so the floating-label pattern works. Omit `label` for compact grid cells.
  *
- * Works in both **form layouts** and **grid inline-edit** contexts.
+ * **Controlled mode:** Pass `value` and `onChange` per MUI `Select` (event target value).
+ *
+ * @param props - {@link DropdownInputProps}
+ * @returns The form control subtree (`FormControl` → `Select` → `MenuItem`s).
  *
  * @example
  * ```tsx
