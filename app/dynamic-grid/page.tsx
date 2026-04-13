@@ -1,13 +1,56 @@
+/**
+ * @fileoverview Dynamic Grid demo page.
+ *
+ * Fetches posts from JSONPlaceholder (`GET /posts`) with `_page` / `_limit`
+ * pagination, merges each post with a rotating mock employee row from
+ * {@link DEMO_ROWS}, and renders the result in `<Grid />` using {@link DEMO_COLUMNS}.
+ *
+ * While data loads, {@link GridLoader} mirrors the grid layout (same `columnDefs`
+ * and viewport class). API pagination uses `<DataPagination />`; changing the
+ * page refetches posts. A synthetic totals row is pinned with
+ * `stickyFooterRowIndex` (salary sum for the current page).
+ *
+ * Base URL: `NEXT_PUBLIC_JSONPLACEHOLDER_BASE_URL` or the public JSONPlaceholder
+ * host — same pattern as `app/dynamic-form/page.tsx`.
+ */
+
 "use client";
 
+import dynamic from "next/dynamic";
 import Link from "next/link";
+import { useMemo, useState } from "react";
+import pageStyles from "./page.module.css";
+import GridLoader from "./_components/grid-loader/GridLoader";
 import { Grid, CELL_INPUT_RENDERERS } from "@/_components/grid";
 import type { ColumnDef } from "@/_components/grid";
+
+const DataPagination = dynamic(() => import("@/_components/pagination"), {
+  ssr: false,
+});
 import { PAGE_ROUTE } from "@/helpers/constant/constant";
+import { useApi } from "@/helpers/hooks/useApi";
 import { DEMO_ROWS } from "@/helpers/mock/gridDemoData";
 import type { EmployeeRow } from "@/helpers/mock/gridDemoData";
+import type { JsonPlaceholderPost } from "@/helpers/types/types";
 
-/** Inline-edit validation for person name fields (first / last). */
+const JSONPLACEHOLDER_BASE_URL =
+  process.env.NEXT_PUBLIC_JSONPLACEHOLDER_BASE_URL ??
+  "https://jsonplaceholder.typicode.com";
+
+const POSTS_API_BASE = `${JSONPLACEHOLDER_BASE_URL.replace(/\/$/, "")}/posts`;
+
+/** JSONPlaceholder serves 100 posts; used for pagination totals (same idea as comments on the form page). */
+const JSON_PLACEHOLDER_POSTS_TOTAL = 100;
+
+const API_PAGE_LIMIT = 20;
+
+/**
+ * Validates inline-edited person name fields (first / last name columns).
+ *
+ * @param label - Human-readable field label used in error messages (e.g. `"First name"`).
+ * @param value - Raw cell value from the grid (coerced to string).
+ * @returns `null` when valid, otherwise a short error message shown on failed commit.
+ */
 function validatePersonName(label: string, value: unknown): string | null {
   const s = (typeof value === "string" ? value : "").trim();
   if (!s) return `${label} is required`;
@@ -17,11 +60,95 @@ function validatePersonName(label: string, value: unknown): string | null {
 }
 
 /**
- * Column schema for the demo grid.
+ * Builds grid rows by overlaying API post fields onto mock {@link DEMO_ROWS} records.
  *
- * Defines 22 columns to demonstrate horizontal scrolling behaviour when the
- * total column width exceeds the viewport. Each `field` value maps to the
- * matching key in {@link DEMO_ROWS}.
+ * @remarks
+ * **Why merge:** `/posts` only returns `userId`, `id`, `title`, and `body`. The grid
+ * keeps a fixed 22-column {@link DEMO_COLUMNS} schema; mock rows supply the rest
+ * (names, salary, dates, etc.).
+ *
+ * **Mapping:** `id` ← post id; `designation` ← title; `department` ← `Post · user {userId}`;
+ * `team` ← body (whitespace-normalised, max ~180 chars); `employeeCode` and `manager`
+ * ← user id hints. Other fields come from the mock row chosen by global index
+ * `(apiPage - 1) * API_PAGE_LIMIT + i` modulo `DEMO_ROWS.length`.
+ *
+ * @param posts - Slice returned for the current API page (typically length `API_PAGE_LIMIT`).
+ * @param apiPage - One-based page index (must match the `_page` query used to fetch `posts`).
+ * @returns One {@link EmployeeRow} per post, ready for `<Grid rowData={…} />` (before footer).
+ */
+function mergePostsWithMockEmployeeRows(
+  posts: JsonPlaceholderPost[],
+  apiPage: number,
+): EmployeeRow[] {
+  const start = (apiPage - 1) * API_PAGE_LIMIT;
+  return posts.map((post, i) => {
+    const mock = DEMO_ROWS[(start + i) % DEMO_ROWS.length];
+    const bodyPreview = post.body.split(/\s+/).join(" ").trim();
+    const truncated =
+      bodyPreview.length > 180 ? `${bodyPreview.slice(0, 180)}…` : bodyPreview;
+    return {
+      ...mock,
+      id: post.id,
+      designation: post.title,
+      department: `Post · user ${post.userId}`,
+      team: truncated,
+      employeeCode: `${mock.employeeCode} · U${post.userId}`,
+      manager: `User ${post.userId}`,
+    };
+  });
+}
+
+/**
+ * Creates the sticky summary row shown below the current page of data rows.
+ *
+ * @param dataRows - Merged employee rows for the active page (footer row excluded).
+ * @param totalItemCount - Total posts in the dataset ({@link JSON_PLACEHOLDER_POSTS_TOTAL}),
+ *   used only for the subtitle in `lastName`.
+ * @returns A single {@link EmployeeRow} with `firstName` `"Totals"`, summed numeric
+ *   `salary` across `dataRows`, placeholder strings for most columns, and `id` `0`.
+ */
+function buildFooterRow(
+  dataRows: EmployeeRow[],
+  totalItemCount: number,
+): EmployeeRow {
+  const totalSalary = dataRows.reduce(
+    (acc, row) => acc + (typeof row.salary === "number" ? row.salary : 0),
+    0,
+  );
+  return {
+    ...DEMO_ROWS[0],
+    id: 0,
+    firstName: "Totals",
+    lastName: `(${dataRows.length} rows · ${totalItemCount} posts)`,
+    email: "—",
+    phone: "—",
+    department: "—",
+    designation: "—",
+    employeeCode: "—",
+    dateOfJoin: "—",
+    dateOfBirth: "—",
+    gender: "—",
+    location: "—",
+    city: "—",
+    state: "—",
+    country: "—",
+    pincode: "—",
+    salary: totalSalary,
+    currency: "USD",
+    manager: "—",
+    team: "—",
+    status: "—",
+    lastUpdated: "—",
+    enabled: false,
+  };
+}
+
+/**
+ * Column schema for the demo `<Grid />` and {@link GridLoader}.
+ *
+ * Defines 22 columns so combined minimum widths exceed typical viewports
+ * (horizontal scroll). Each `field` matches keys on {@link EmployeeRow} after
+ * {@link mergePostsWithMockEmployeeRows} (mock base + API overlays).
  */
 const DEMO_COLUMNS: ColumnDef<EmployeeRow>[] = [
   { field: "select", checkboxSelection: true },
@@ -145,57 +272,53 @@ const DEMO_COLUMNS: ColumnDef<EmployeeRow>[] = [
   },
 ];
 
-/** Sum of numeric salaries across demo rows (mixed currencies; shown as USD in the footer). */
-const DEMO_TOTAL_SALARY = DEMO_ROWS.reduce(
-  (acc, row) =>
-    acc + (typeof row.salary === "number" ? row.salary : 0),
-  0,
-);
-
-/** Single summary row pinned to the grid footer via `stickyFooterRowIndex`. */
-const DEMO_FOOTER_ROW: EmployeeRow = {
-  ...DEMO_ROWS[0],
-  id: 0,
-  firstName: "Totals",
-  lastName: `(${DEMO_ROWS.length} employees)`,
-  email: "—",
-  phone: "—",
-  department: "—",
-  designation: "—",
-  employeeCode: "—",
-  dateOfJoin: "—",
-  dateOfBirth: "—",
-  gender: "—",
-  location: "—",
-  city: "—",
-  state: "—",
-  country: "—",
-  pincode: "—",
-  salary: DEMO_TOTAL_SALARY,
-  currency: "USD",
-  manager: "—",
-  team: "—",
-  status: "—",
-  lastUpdated: "—",
-  enabled: false,
-};
-
-const DEMO_ROWS_WITH_FOOTER = [...DEMO_ROWS, DEMO_FOOTER_ROW];
-
 /**
- * DynamicGridPage
+ * Demo route: paginated JSONPlaceholder posts inside the shared `<Grid />` shell.
  *
- * Demo page for the `<Grid />` component.
+ * @remarks
+ * **State:** `apiPage` drives `useApi` endpoint; `mergedDataRows` / `rowsWithFooter`
+ * are derived with `useMemo`. The grid is hidden while `loading` and replaced by
+ * {@link GridLoader}.
  *
- * Renders the grid with 22 columns, 50 data rows, and one sticky footer row
- * (salary total). Mock data comes from `helpers/mock/gridDemoData.ts`. The
- * combined minimum column width (~4 400 px) exceeds most viewport widths,
- * demonstrating horizontal scroll. Vertical scroll is triggered by the data
- * rows within the constrained container height; the footer stays at the bottom.
+ * **Layout:** Main column lists back link, title, blurb, error line (if any),
+ * loader or grid or empty message, then {@link DataPagination} (disabled during load).
  *
- * @returns The page layout containing the grid demo.
+ * @returns The `/dynamic-grid` page: navigation chrome plus loader, grid, or empty state.
  */
 export default function DynamicGridPage() {
+  const [apiPage, setApiPage] = useState(1);
+
+  const endpoint = useMemo(
+    () => `${POSTS_API_BASE}?_page=${apiPage}&_limit=${API_PAGE_LIMIT}`,
+    [apiPage],
+  );
+
+  const { data, loading, error } = useApi<JsonPlaceholderPost[]>({
+    endpoint,
+    method: "GET",
+  });
+
+  const mergedDataRows = useMemo(() => {
+    const list = Array.isArray(data) ? data : [];
+    return mergePostsWithMockEmployeeRows(list, apiPage);
+  }, [data, apiPage]);
+
+  const totalApiPages = Math.max(
+    1,
+    Math.ceil(JSON_PLACEHOLDER_POSTS_TOTAL / API_PAGE_LIMIT),
+  );
+
+  const rowsWithFooter = useMemo(() => {
+    if (mergedDataRows.length === 0) return [];
+    return [
+      ...mergedDataRows,
+      buildFooterRow(mergedDataRows, JSON_PLACEHOLDER_POSTS_TOTAL),
+    ];
+  }, [mergedDataRows]);
+
+  const stickyFooterRowIndex =
+    mergedDataRows.length > 0 ? mergedDataRows.length : undefined;
+
   return (
     <main style={{ padding: "24px" }}>
       <Link
@@ -222,20 +345,62 @@ export default function DynamicGridPage() {
       <p
         style={{ marginBottom: "20px", fontSize: "0.875rem", color: "#64748b" }}
       >
-        22 columns · 50 data rows · 1 sticky footer · horizontal + vertical
-        scroll
+        22 columns · JSONPlaceholder <code>/posts</code> + mock employee merge ·{" "}
+        <a href={POSTS_API_BASE} style={{ color: "inherit" }}>
+          API
+        </a>{" "}
+        pagination · sticky footer
       </p>
 
-      <Grid
-        columnDefs={DEMO_COLUMNS}
-        rowData={DEMO_ROWS_WITH_FOOTER}
-        stickyFooterRowIndex={DEMO_ROWS.length}
-        onCellValueChanged={({ field, oldValue, newValue }) => {
-          console.log(
-            `Cell value changed — field: "${field}", old: ${JSON.stringify(oldValue)}, new: ${JSON.stringify(newValue)}`,
-          );
-        }}
-      />
+      {error && (
+        <p
+          style={{
+            color: "#b00020",
+            fontSize: "0.875rem",
+            marginBottom: "12px",
+          }}
+        >
+          {error.message}
+        </p>
+      )}
+
+      {loading && (
+        <GridLoader
+          columnDefs={DEMO_COLUMNS}
+          rowCount={API_PAGE_LIMIT}
+          className={pageStyles.gridViewport}
+        />
+      )}
+
+      {!loading && rowsWithFooter.length > 0 && (
+        <Grid
+          columnDefs={DEMO_COLUMNS}
+          rowData={rowsWithFooter}
+          stickyFooterRowIndex={stickyFooterRowIndex}
+          className={pageStyles.gridViewport}
+          onCellValueChanged={({ field, oldValue, newValue }) => {
+            console.log(
+              `Cell value changed — field: "${field}", old: ${JSON.stringify(oldValue)}, new: ${JSON.stringify(newValue)}`,
+            );
+          }}
+        />
+      )}
+
+      {!loading && !error && mergedDataRows.length === 0 && (
+        <p style={{ fontSize: "0.875rem", color: "#666" }}>No posts found.</p>
+      )}
+
+      {JSON_PLACEHOLDER_POSTS_TOTAL > 0 && (
+        <div style={{ marginTop: "20px" }}>
+          <DataPagination
+            page={apiPage}
+            totalPages={totalApiPages}
+            totalItems={JSON_PLACEHOLDER_POSTS_TOTAL}
+            disabled={loading}
+            onPageChange={setApiPage}
+          />
+        </div>
+      )}
     </main>
   );
 }

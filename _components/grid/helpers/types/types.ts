@@ -255,6 +255,13 @@ export interface GridProps<
    * values are ignored (no footer).
    */
   stickyFooterRowIndex?: number;
+
+  /**
+   * Optional extra CSS class name(s) for the scrollable grid root (`role="table"`),
+   * merged with the internal container class. Use for layout constraints such as
+   * `max-height` in a CSS module.
+   */
+  className?: string;
 }
 
 /**

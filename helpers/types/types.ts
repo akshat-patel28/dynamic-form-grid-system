@@ -23,6 +23,16 @@ export type JsonPlaceholderComment = {
 };
 
 /**
+ * Shape of a single post from JSONPlaceholder `GET /posts`.
+ */
+export type JsonPlaceholderPost = {
+  userId: number;
+  id: number;
+  title: string;
+  body: string;
+};
+
+/**
  * Row passed to the stepper after local transformation.
  */
 export type CommentFormRow = JsonPlaceholderComment & {

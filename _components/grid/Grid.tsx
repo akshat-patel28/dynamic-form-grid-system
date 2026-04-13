@@ -100,6 +100,7 @@ const Grid = <TData extends Record<string, unknown> = Record<string, unknown>>({
   rowData,
   onCellValueChanged,
   stickyFooterRowIndex,
+  className,
 }: GridProps<TData>) => {
   const [internalRowData, setInternalRowData] = useState<TData[]>(() =>
     rowData.map((row) => ({ ...row })),
@@ -164,8 +165,12 @@ const Grid = <TData extends Record<string, unknown> = Record<string, unknown>>({
     [],
   );
 
+  const rootClassName = [styles.gridContainer, className]
+    .filter(Boolean)
+    .join(" ");
+
   return (
-    <div className={styles.gridContainer} role="table">
+    <div className={rootClassName} role="table">
       <GridHeader columnDefs={columnDefs} />
       <GridBody
         columnDefs={columnDefs}
