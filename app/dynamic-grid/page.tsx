@@ -7,6 +7,15 @@ import { PAGE_ROUTE } from "@/helpers/constant/constant";
 import { DEMO_ROWS } from "@/helpers/mock/gridDemoData";
 import type { EmployeeRow } from "@/helpers/mock/gridDemoData";
 
+/** Inline-edit validation for person name fields (first / last). */
+function validatePersonName(label: string, value: unknown): string | null {
+  const s = (typeof value === "string" ? value : "").trim();
+  if (!s) return `${label} is required`;
+  if (s.length < 2) return `${label} must be at least 2 characters`;
+  if (s.length > 80) return `${label} must be at most 80 characters`;
+  return null;
+}
+
 /**
  * Column schema for the demo grid.
  *
@@ -22,12 +31,14 @@ const DEMO_COLUMNS: ColumnDef<EmployeeRow>[] = [
     field: "firstName",
     editable: true,
     cellInputRenderer: CELL_INPUT_RENDERERS.TEXT_INPUT,
+    validateCellValue: ({ value }) => validatePersonName("First name", value),
   },
   {
     headerName: "Last Name",
     field: "lastName",
     editable: true,
     cellInputRenderer: CELL_INPUT_RENDERERS.TEXT_INPUT,
+    validateCellValue: ({ value }) => validatePersonName("Last name", value),
   },
   {
     headerName: "Email",

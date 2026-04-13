@@ -42,6 +42,54 @@ function resolveCellValue<TData extends Record<string, unknown>>(
 }
 
 /**
+ * Whether the draft value should be considered unchanged vs the committed cell value.
+ * Compares raw row data (not formatted display); normalizes number vs numeric string for inputs.
+ */
+function valuesEqualForCellCommit(a: unknown, b: unknown): boolean {
+  if (Object.is(a, b)) return true;
+  if (a === null || a === undefined) {
+    return (
+      b === null ||
+      b === undefined ||
+      (typeof b === "string" && b.trim() === "")
+    );
+  }
+  if (b === null || b === undefined) {
+    return typeof a === "string" && a.trim() === "";
+  }
+  if (typeof a === "number" && typeof b === "string") {
+    const n = Number(b);
+    return !Number.isNaN(n) && n === a;
+  }
+  if (typeof b === "number" && typeof a === "string") {
+    const n = Number(a);
+    return !Number.isNaN(n) && n === b;
+  }
+  return false;
+}
+
+function valuesDifferForCellCommit(a: unknown, b: unknown): boolean {
+  return !valuesEqualForCellCommit(a, b);
+}
+
+function runCellValidation<TData extends Record<string, unknown>>(
+  columnDef: ColumnDef<TData>,
+  value: unknown,
+  rowData: TData,
+  rowIndex: number,
+): string | null {
+  const fn = columnDef.validateCellValue;
+  if (!fn) return null;
+  const msg = fn({
+    value,
+    rowData,
+    field: columnDef.field,
+    rowIndex,
+  });
+  return msg && msg.trim() !== "" ? msg : null;
+}
+
+/**
  * GridCellRenderer
  *
  * Renders a single focusable data cell (`role="cell"`) with the formatted display value.
@@ -60,8 +108,13 @@ function resolveCellValue<TData extends Record<string, unknown>>(
  * When the column is editable (`editable` is `true` or the row-level predicate
  * returns `true`) and `cellInputRenderer` is set, **double-click** opens the
  * mapped input (text, number, email, or native `type="date"`). **Enter** or
- * **blur** commits via `onCellValueChange` if the value changed; **Escape**
- * closes the editor without committing. Date values use `YYYY-MM-DD` strings.
+ * **blur** commits via `onCellValueChange` if the value changed (compared to raw
+ * `row[field]`, not the formatted display string); **Escape** closes the editor
+ * without committing. Date values use `YYYY-MM-DD` strings.
+ *
+ * When `columnDef.validateCellValue` is set, invalid drafts show a red outline on
+ * text-like inputs; a failed commit shows `toast.error`, reverts to the committed
+ * value, and does not call `onCellValueChange`.
  *
  * @param props - {@link GridCellRendererProps}
  * @returns A cell `<div>` with either formatted text or the active inline input.
@@ -83,7 +136,11 @@ export default function GridCellRenderer<
 
   const [isEditing, setIsEditing] = useState(false);
   const [editValue, setEditValue] = useState(row[columnDef.field]);
+  const [draftError, setDraftError] = useState<string | null>(null);
   const inputRef = useRef<HTMLInputElement>(null);
+
+  const textFieldError =
+    Boolean(columnDef.validateCellValue) && Boolean(draftError);
 
   const isFocused =
     focusedCell?.rowIndex === rowIndex && focusedCell?.colIndex === colIndex;
@@ -121,18 +178,53 @@ export default function GridCellRenderer<
 
   const handleDoubleClick = useCallback(() => {
     if (isEditable && columnDef.cellInputRenderer) {
-      setEditValue(row[columnDef.field]);
+      const committed = row[columnDef.field];
+      setEditValue(committed);
+      setDraftError(
+        columnDef.validateCellValue
+          ? runCellValidation(columnDef, committed, row, rowIndex)
+          : null,
+      );
       setIsEditing(true);
       setTimeout(() => inputRef.current?.focus(), 0);
     }
-  }, [isEditable, columnDef.cellInputRenderer, row, columnDef.field]);
+  }, [
+    isEditable,
+    columnDef,
+    row,
+    rowIndex,
+  ]);
 
   const commitValue = useCallback(() => {
-    if (editValue !== displayValue) {
-      onCellValueChange(rowIndex, columnDef.field, editValue);
+    const committed = row[columnDef.field];
+
+    if (columnDef.validateCellValue) {
+      const msg = runCellValidation(columnDef, editValue, row, rowIndex);
+      if (msg) {
+        toast.error(msg);
+        setEditValue(committed);
+        setDraftError(null);
+        setIsEditing(false);
+        return;
+      }
     }
+
+    if (!valuesDifferForCellCommit(committed, editValue)) {
+      setDraftError(null);
+      setIsEditing(false);
+      return;
+    }
+
+    onCellValueChange(rowIndex, columnDef.field, editValue);
+    setDraftError(null);
     setIsEditing(false);
-  }, [editValue, displayValue, onCellValueChange, rowIndex, columnDef.field]);
+  }, [
+    columnDef,
+    editValue,
+    onCellValueChange,
+    row,
+    rowIndex,
+  ]);
 
   const handleInputBlur = useCallback(() => {
     commitValue();
@@ -143,35 +235,57 @@ export default function GridCellRenderer<
       if (e.key === "Enter") {
         commitValue();
       } else if (e.key === "Escape") {
+        setEditValue(row[columnDef.field]);
+        setDraftError(null);
         setIsEditing(false);
       }
     },
-    [commitValue],
+    [commitValue, row, columnDef.field],
   );
 
   const handleInputChange = useCallback(
     (e: React.ChangeEvent<HTMLInputElement>) => {
-      setEditValue(e.target.value);
+      const next = e.target.value;
+      setEditValue(next);
+      if (columnDef.validateCellValue) {
+        setDraftError(runCellValidation(columnDef, next, row, rowIndex));
+      }
     },
-    [],
+    [columnDef, row, rowIndex],
   );
 
   const handleSwitchToggle = useCallback(
     (_e: React.ChangeEvent<HTMLInputElement>, checked: boolean) => {
-      setEditValue(checked);
+      if (columnDef.validateCellValue) {
+        const msg = runCellValidation(columnDef, checked, row, rowIndex);
+        if (msg) {
+          toast.error(msg);
+          return;
+        }
+      }
       onCellValueChange(rowIndex, columnDef.field, checked);
     },
-    [onCellValueChange, rowIndex, columnDef.field],
+    [columnDef, onCellValueChange, row, rowIndex],
   );
 
   const handleDropdownChange = useCallback(
     (e: { target: { value: unknown } }) => {
       const val = e.target.value;
+      if (columnDef.validateCellValue) {
+        const msg = runCellValidation(columnDef, val, row, rowIndex);
+        if (msg) {
+          toast.error(msg);
+          setEditValue(row[columnDef.field]);
+          setDraftError(null);
+          setIsEditing(false);
+          return;
+        }
+      }
       setEditValue(val);
       onCellValueChange(rowIndex, columnDef.field, val);
       setIsEditing(false);
     },
-    [onCellValueChange, rowIndex, columnDef.field],
+    [columnDef, onCellValueChange, row, rowIndex],
   );
 
   /** Shared MUI sx props reused by every TextInput variant. */
@@ -204,6 +318,7 @@ export default function GridCellRenderer<
           onChange={handleInputChange}
           onBlur={handleInputBlur}
           onKeyDown={handleInputKeyDown}
+          error={textFieldError}
           size="small"
           variant="outlined"
           className={styles.cellInput}
@@ -218,6 +333,7 @@ export default function GridCellRenderer<
           onChange={handleInputChange}
           onBlur={handleInputBlur}
           onKeyDown={handleInputKeyDown}
+          error={textFieldError}
           size="small"
           variant="outlined"
           className={styles.cellInput}
@@ -235,6 +351,7 @@ export default function GridCellRenderer<
           onChange={handleInputChange}
           onBlur={handleInputBlur}
           onKeyDown={handleInputKeyDown}
+          error={textFieldError}
           size="small"
           variant="outlined"
           className={styles.cellInput}
@@ -250,6 +367,7 @@ export default function GridCellRenderer<
           onChange={handleInputChange}
           onBlur={handleInputBlur}
           onKeyDown={handleInputKeyDown}
+          error={textFieldError}
           size="small"
           variant="outlined"
           className={styles.cellInput}
@@ -265,6 +383,7 @@ export default function GridCellRenderer<
           onChange={handleInputChange}
           onBlur={handleInputBlur}
           onKeyDown={handleInputKeyDown}
+          error={textFieldError}
           size="small"
           variant="outlined"
           className={styles.cellInput}
@@ -274,7 +393,7 @@ export default function GridCellRenderer<
       ),
       [CELL_INPUT_RENDERERS.SWITCH_INPUT]: () => (
         <SwitchInput
-          checked={!!editValue}
+          checked={!!row[columnDef.field]}
           onChange={handleSwitchToggle}
           size="small"
         />
@@ -293,7 +412,10 @@ export default function GridCellRenderer<
       ),
     }),
     [
+      columnDef.field,
       editValue,
+      row,
+      textFieldError,
       handleInputChange,
       handleInputBlur,
       handleInputKeyDown,

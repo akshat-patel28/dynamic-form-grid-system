@@ -25,5 +25,6 @@ export type {
   GridCellRendererProps,
   GridProps,
   OnCellValueChangedParams,
+  ValidateCellValueParams,
 } from "./helpers/types/types";
 export type { DropdownOption } from "../inputs/DropdownInput";

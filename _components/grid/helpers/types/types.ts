@@ -5,12 +5,30 @@
  * or passing props to `<Grid />`.
  *
  * @example
- * import type { ColumnDef, GridProps, FocusedCell, GridCellRendererProps } from '@/_components/grid';
+ * import type { ColumnDef, GridProps, FocusedCell, GridCellRendererProps, ValidateCellValueParams } from '@/_components/grid';
  */
 
 import type { CSSProperties } from "react";
 import type { CellInputRenderer } from "../constants/cellInputRenderers";
 import type { DropdownOption } from "../../../inputs/DropdownInput";
+
+/**
+ * Arguments passed to {@link ColumnDef.validateCellValue} for a single draft value.
+ *
+ * @template TData Shape of a single row data object.
+ */
+export interface ValidateCellValueParams<
+  TData extends Record<string, unknown> = Record<string, unknown>,
+> {
+  /** Draft value being validated (committed cell value is `rowData[field]`). */
+  value: unknown;
+  /** Full row object for the cell’s row. */
+  rowData: TData;
+  /** Column field key. */
+  field: string;
+  /** Zero-based row index in the grid’s `rowData`. */
+  rowIndex: number;
+}
 
 /**
  * Defines the configuration for a single column in the grid.
@@ -137,6 +155,17 @@ export interface ColumnDef<
    * ]
    */
   cellInputOptions?: DropdownOption[];
+
+  /**
+   * Optional per-cell validator for the draft value before commit.
+   * Return `null` when valid, or a non-empty error string when invalid.
+   * While editing text-like inputs, invalid drafts set the field’s `error` state;
+   * on failed commit (blur, Enter, switch, dropdown), `toast.error` runs, the
+   * value reverts to the last committed `rowData[field]`, and the grid is not updated.
+   */
+  validateCellValue?: (
+    params: ValidateCellValueParams<TData>,
+  ) => string | null;
 
   /**
    * When `true`, this column renders a checkbox instead of data.
