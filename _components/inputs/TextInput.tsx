@@ -60,12 +60,7 @@ const TextInput = ({
   ...rest
 }: TextInputProps) => {
   return (
-    <TextField
-      variant={variant}
-      size={size}
-      fullWidth={fullWidth}
-      {...rest}
-    />
+    <TextField variant={variant} size={size} fullWidth={fullWidth} {...rest} />
   );
 };
 

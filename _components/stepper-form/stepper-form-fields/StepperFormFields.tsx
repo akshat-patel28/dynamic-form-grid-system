@@ -22,7 +22,10 @@
 import Box from "@mui/material/Box";
 import { useFormikContext } from "formik";
 
-import type { StepperFormFieldsProps } from "../helpers/types/types";
+import type {
+  BuildFieldPropsParams,
+  StepperFormFieldsProps,
+} from "../helpers/types/types";
 import { resolveRenderer } from "../helpers/utils/fieldRendererMap";
 
 /**
@@ -44,40 +47,53 @@ function resolveEditable<TData extends Record<string, unknown>>(
 /**
  * Translates a renderer `group` into the prop object expected by the MUI input wrapper.
  *
- * @param group - `RendererEntry.group` from {@link resolveRenderer}.
- * @param fieldKey - Formik field name (`def.field`).
- * @param label - Visible label (defaults to field name upstream).
- * @param value - Current Formik value for this field.
- * @param disabled - When `true`, passes `disabled` to the control (inverse of `editable`).
- * @param hasError - Whether to show error styling (`touched && errors[field]`).
- * @param errorText - String error message for `helperText` when `hasError`.
- * @param placeholder - From `FormFieldDef.placeholder`, text group only.
- * @param htmlInputType - For `text` group: `input` `type` (`number`, `email`, `date`, …).
- * @param def - Field definition; only `options` is read for dropdown/radio.
- * @param handlers - Formik `handleChange`, `handleBlur`, `setFieldValue` (`setFieldValue` reserved for future non-standard inputs).
+ * @param params - {@link BuildFieldPropsParams}
  * @returns Plain object spread onto the resolved dynamic component.
  *
  * @remarks
  * Checkbox and switch groups use `checked: Boolean(value)`; text-like groups coerce
  * `value` to `""` when nullish. Date inputs add `slotProps.inputLabel.shrink` for MUI.
+ * `number` / `date` types forward `FormFieldDef.minValue` / `maxValue` to
+ * `slotProps.htmlInput` as native `min` / `max`.
  */
-function buildFieldProps(
-  group: string,
-  fieldKey: string,
-  label: string,
-  value: unknown,
-  disabled: boolean,
-  hasError: boolean,
-  errorText: string | undefined,
-  placeholder: string | undefined,
+function buildTextGroupSlotProps(
   htmlInputType: string | undefined,
-  def: { options?: Array<{ value: string | number; label: string; disabled?: boolean }> },
-  handlers: {
-    handleChange: (e: React.ChangeEvent<unknown>) => void;
-    handleBlur: (e: React.FocusEvent<unknown>) => void;
-    setFieldValue: (field: string, val: unknown) => void;
-  },
-): Record<string, unknown> {
+  def: BuildFieldPropsParams["def"],
+): Record<string, unknown> | undefined {
+  const slotProps: Record<string, unknown> = {};
+
+  if (htmlInputType === "date") {
+    slotProps.inputLabel = { shrink: true };
+  }
+
+  const supportsMinMax =
+    htmlInputType === "number" || htmlInputType === "date";
+  const hasMin = def.minValue !== undefined;
+  const hasMax = def.maxValue !== undefined;
+
+  if (supportsMinMax && (hasMin || hasMax)) {
+    slotProps.htmlInput = {
+      ...(hasMin ? { min: def.minValue } : {}),
+      ...(hasMax ? { max: def.maxValue } : {}),
+    };
+  }
+
+  return Object.keys(slotProps).length > 0 ? slotProps : undefined;
+}
+
+function buildFieldProps({
+  group,
+  fieldKey,
+  label,
+  value,
+  disabled,
+  hasError,
+  errorText,
+  placeholder,
+  htmlInputType,
+  def,
+  handlers,
+}: BuildFieldPropsParams): Record<string, unknown> {
   const base = {
     name: fieldKey,
     label,
@@ -87,7 +103,8 @@ function buildFieldProps(
   };
 
   switch (group) {
-    case "text":
+    case "text": {
+      const slotProps = buildTextGroupSlotProps(htmlInputType, def);
       return {
         ...base,
         type: htmlInputType,
@@ -97,10 +114,9 @@ function buildFieldProps(
         onBlur: handlers.handleBlur,
         size: "small",
         fullWidth: true,
-        ...(htmlInputType === "date" && {
-          slotProps: { inputLabel: { shrink: true } },
-        }),
+        ...(slotProps ? { slotProps } : {}),
       };
+    }
 
     case "textarea":
       return {
@@ -205,19 +221,19 @@ const StepperFormFields = <
           def.inputRenderer,
         );
 
-        const fieldProps = buildFieldProps(
+        const fieldProps = buildFieldProps({
           group,
           fieldKey,
           label,
-          values[fieldKey],
-          !isEditable,
+          value: values[fieldKey],
+          disabled: !isEditable,
           hasError,
           errorText,
-          def.placeholder,
+          placeholder: def.placeholder,
           htmlInputType,
           def,
           handlers,
-        );
+        });
 
         return <Component key={fieldKey} {...fieldProps} />;
       })}

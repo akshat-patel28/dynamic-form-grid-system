@@ -12,6 +12,8 @@
  * ```
  */
 
+import type { ChangeEvent, FocusEvent } from "react";
+
 import type { CellInputRenderer } from "@/_components/grid/helpers/constants/cellInputRenderers";
 import type { ObjectSchema } from "yup";
 
@@ -96,6 +98,65 @@ export interface FormFieldDef<
     label: string;
     disabled?: boolean;
   }>;
+
+  /**
+   * Native `min` for `numberInput` or `dateInput` (`<input type="number|date">`).
+   *
+   * - **Number** — use a numeric minimum (e.g. `0`, `18`).
+   * - **Date** — use an ISO calendar string `YYYY-MM-DD` (HTML date input format).
+   *
+   * Ignored for other renderers. Pair with Yup rules for consistent validation.
+   */
+  minValue?: number | string;
+
+  /**
+   * Native `max` for `numberInput` or `dateInput`, same formats as {@link FormFieldDef.minValue}.
+   */
+  maxValue?: number | string;
+}
+
+/**
+ * Formik handlers passed into `buildFieldProps` when wiring inputs to field state.
+ */
+export interface BuildFieldPropsHandlers {
+  handleChange: (e: ChangeEvent<unknown>) => void;
+  handleBlur: (e: FocusEvent<unknown>) => void;
+  setFieldValue: (field: string, val: unknown) => void;
+}
+
+/**
+ * Subset of {@link FormFieldDef} read by `buildFieldProps` (options, min/max for inputs).
+ */
+export type BuildFieldPropsFieldDefSlice = Pick<
+  FormFieldDef,
+  "options" | "minValue" | "maxValue"
+>;
+
+/**
+ * Parameter bag for the `buildFieldProps` helper in `StepperFormFields.tsx`.
+ */
+export interface BuildFieldPropsParams {
+  /** Resolved renderer group from `resolveRenderer` (`text`, `dropdown`, etc.). */
+  group: string;
+  /** Formik field name. */
+  fieldKey: string;
+  /** Control label. */
+  label: string;
+  /** Current value for this field from Formik. */
+  value: unknown;
+  /** Passed through as input `disabled`. */
+  disabled: boolean;
+  /** Whether the control should show error state. */
+  hasError: boolean;
+  /** Validation message for `helperText` when `hasError`. */
+  errorText: string | undefined;
+  /** Placeholder for text-like renderers. */
+  placeholder: string | undefined;
+  /** HTML `type` for the `text` renderer group (`number`, `email`, `date`, …). */
+  htmlInputType: string | undefined;
+  /** Field definition slice (`options`, `minValue`, `maxValue`). */
+  def: BuildFieldPropsFieldDefSlice;
+  handlers: BuildFieldPropsHandlers;
 }
 
 /**

@@ -2,7 +2,8 @@
  * @fileoverview Barrel for the stepper-style multi-row form (Formik + lazy inputs).
  *
  * **Default export:** `StepperForm` — main container.
- * **Types:** `FormFieldDef`, `StepperFormProps`, `StepperFormFieldsProps`, `StepperPaginationProps`.
+ * **Types:** `FormFieldDef`, `StepperFormProps`, `StepperFormFieldsProps`, `StepperPaginationProps`,
+ * plus `BuildFieldPropsParams` / `BuildFieldPropsHandlers` / `BuildFieldPropsFieldDefSlice` for field wiring.
  *
  * **Related modules:** Field rendering uses the `resolveRenderer` helper in
  * `helpers/utils/fieldRendererMap` (not re-exported here). Dataset-level paging is
@@ -18,6 +19,9 @@
 export { default } from "./StepperForm";
 
 export type {
+  BuildFieldPropsFieldDefSlice,
+  BuildFieldPropsHandlers,
+  BuildFieldPropsParams,
   FormFieldDef,
   StepperFormProps,
   StepperFormFieldsProps,
