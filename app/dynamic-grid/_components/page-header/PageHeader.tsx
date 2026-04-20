@@ -9,7 +9,7 @@ interface PageHeaderProps {
    * Whether at least one checkbox row is currently selected in the grid.
    *
    * Used to control the disabled state and visual style of the
-   * "Show selected" CTA.
+   * "Show selected" and "Edit selected" CTAs.
    */
   hasSelection: boolean;
   /**
@@ -19,6 +19,13 @@ interface PageHeaderProps {
    * and triggers any top-level action (toast, delete, export, etc.).
    */
   onShowSelected: () => void;
+  /**
+   * Click handler for the "Edit selected" button.
+   *
+   * Parent should persist the current selection (e.g. into route context)
+   * and navigate to the bulk-edit page.
+   */
+  onEditSelected: () => void;
 }
 
 /**
@@ -38,7 +45,12 @@ interface PageHeaderProps {
 export default function PageHeader({
   hasSelection,
   onShowSelected,
+  onEditSelected,
 }: Readonly<PageHeaderProps>) {
+  const buttonClassName = hasSelection
+    ? styles.showSelectedButton
+    : `${styles.showSelectedButton} ${styles.showSelectedButtonDisabled}`;
+
   return (
     <>
       <Link
@@ -58,13 +70,17 @@ export default function PageHeader({
           type="button"
           onClick={onShowSelected}
           disabled={!hasSelection}
-          className={
-            hasSelection
-              ? styles.showSelectedButton
-              : `${styles.showSelectedButton} ${styles.showSelectedButtonDisabled}`
-          }
+          className={buttonClassName}
         >
           Show selected
+        </button>
+        <button
+          type="button"
+          onClick={onEditSelected}
+          disabled={!hasSelection}
+          className={buttonClassName}
+        >
+          Edit selected
         </button>
       </div>
     </>

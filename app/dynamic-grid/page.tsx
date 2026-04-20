@@ -17,13 +17,16 @@
 "use client";
 
 import dynamic from "next/dynamic";
-import { useMemo, useRef, useState } from "react";
+import { useRouter } from "next/navigation";
+import { useContext, useMemo, useRef, useState } from "react";
 import { toast } from "react-toastify";
 import pageStyles from "./page.module.css";
 import GridLoader from "./_components/grid-loader/GridLoader";
 import PageHeader from "./_components/page-header/PageHeader";
+import { DynamicGridContext } from "./_context/DynamicGridContext";
 import { Grid, CELL_INPUT_RENDERERS } from "@/_components/grid";
 import type { ColumnDef, GridApi } from "@/_components/grid";
+import { PAGE_ROUTE } from "@/helpers/constant/constant";
 
 const DataPagination = dynamic(() => import("@/_components/pagination"), {
   ssr: false,
@@ -305,18 +308,39 @@ export default function DynamicGridPage() {
   const gridRef = useRef<GridApi<EmployeeRow>>(null);
 
   /**
+   * Route-scoped context for `/dynamic-grid`.
+   *
+   * Used here to persist the current selection snapshot so nested routes
+   * (e.g. `/dynamic-grid/edit`) can read it without prop drilling.
+   */
+  const { setSelectedRows } = useContext(DynamicGridContext);
+
+  /** Next.js client-side router used to navigate to the bulk edit page. */
+  const router = useRouter();
+
+  /**
    * Header CTA action: reads current checkbox selection on demand and surfaces it.
    *
    * Uses the imperative grid API instead of local page state for row payloads so
    * the page can always fetch the latest in-grid selection snapshot at click time.
+   * Also pushes the selection into the route-scoped context for nested pages.
    */
   const handleShowSelected = () => {
-    const { rows, indices } = gridRef.current?.getSelectedRows() ?? {
-      rows: [],
-      indices: [],
-    };
+    const { rows } = gridRef.current?.getSelectedRows() ?? { rows: [] };
+    setSelectedRows(rows);
     toast.info(`${rows.length} of rows are selected`);
-    console.log("Selected rows:", { indices, rows });
+  };
+
+  /**
+   * Header CTA action: persists the current selection into the route-scoped
+   * context and navigates to the bulk edit page so the stepper form can
+   * render one row per step.
+   */
+  const handleEditSelected = () => {
+    const { rows } = gridRef.current?.getSelectedRows() ?? { rows: [] };
+    if (rows.length === 0) return;
+    setSelectedRows(rows);
+    router.push(PAGE_ROUTE.DYNAMIC_GRID_EDIT);
   };
 
   const endpoint = useMemo(
@@ -355,6 +379,7 @@ export default function DynamicGridPage() {
       <PageHeader
         hasSelection={hasSelection}
         onShowSelected={handleShowSelected}
+        onEditSelected={handleEditSelected}
       />
 
       {error && (

@@ -3,6 +3,7 @@ import type { NavLink, PageRouteMap } from "@/helpers/types/types";
 export const PAGE_ROUTE: PageRouteMap = {
   HOME: "/",
   DYNAMIC_GRID: "/dynamic-grid",
+  DYNAMIC_GRID_EDIT: "/dynamic-grid/edit",
   DYNAMIC_FORM: "/dynamic-form",
 };
 
