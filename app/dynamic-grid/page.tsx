@@ -17,18 +17,17 @@
 "use client";
 
 import dynamic from "next/dynamic";
-import Link from "next/link";
 import { useMemo, useRef, useState } from "react";
 import { toast } from "react-toastify";
 import pageStyles from "./page.module.css";
 import GridLoader from "./_components/grid-loader/GridLoader";
+import PageHeader from "./_components/page-header/PageHeader";
 import { Grid, CELL_INPUT_RENDERERS } from "@/_components/grid";
 import type { ColumnDef, GridApi } from "@/_components/grid";
 
 const DataPagination = dynamic(() => import("@/_components/pagination"), {
   ssr: false,
 });
-import { PAGE_ROUTE } from "@/helpers/constant/constant";
 import { useApi } from "@/helpers/hooks/useApi";
 import { DEMO_ROWS } from "@/helpers/mock/gridDemoData";
 import type { EmployeeRow } from "@/helpers/mock/gridDemoData";
@@ -287,10 +286,30 @@ const DEMO_COLUMNS: ColumnDef<EmployeeRow>[] = [
  * @returns The `/dynamic-grid` page: navigation chrome plus loader, grid, or empty state.
  */
 export default function DynamicGridPage() {
+  /** Current API page passed to `/posts?_page=...&_limit=...`. */
   const [apiPage, setApiPage] = useState(1);
+  /**
+   * Derived from `Grid.onSelectionChanged`.
+   *
+   * Drives top-header CTA enable/disable state so actions are only clickable
+   * when one or more checkbox rows are selected.
+   */
   const [hasSelection, setHasSelection] = useState(false);
+  /**
+   * Imperative Grid API handle (AG Grid-like ref-as-prop pattern).
+   *
+   * Passed via `<Grid gridRef={gridRef} />` and populated by the grid with:
+   * - `getSelectedRows()`
+   * - `clearSelection()`
+   */
   const gridRef = useRef<GridApi<EmployeeRow>>(null);
 
+  /**
+   * Header CTA action: reads current checkbox selection on demand and surfaces it.
+   *
+   * Uses the imperative grid API instead of local page state for row payloads so
+   * the page can always fetch the latest in-grid selection snapshot at click time.
+   */
   const handleShowSelected = () => {
     const { rows, indices } = gridRef.current?.getSelectedRows() ?? {
       rows: [],
@@ -333,48 +352,10 @@ export default function DynamicGridPage() {
 
   return (
     <main style={{ padding: "24px" }}>
-      <Link
-        href={PAGE_ROUTE.HOME}
-        style={{
-          display: "inline-block",
-          marginBottom: "16px",
-          fontSize: "0.875rem",
-        }}
-      >
-        ← Back
-      </Link>
-
-      <div
-        style={{
-          display: "flex",
-          alignItems: "center",
-          gap: "12px",
-          marginBottom: "4px",
-        }}
-      >
-        <h1
-          style={{
-            margin: 0,
-            fontSize: "1.25rem",
-            fontWeight: 700,
-            color: "#1e293b",
-          }}
-        >
-          Dynamic Grid
-        </h1>
-        <button
-          type="button"
-          onClick={handleShowSelected}
-          disabled={!hasSelection}
-          className={
-            hasSelection
-              ? pageStyles.showSelectedButton
-              : `${pageStyles.showSelectedButton} ${pageStyles.showSelectedButtonDisabled}`
-          }
-        >
-          Show selected
-        </button>
-      </div>
+      <PageHeader
+        hasSelection={hasSelection}
+        onShowSelected={handleShowSelected}
+      />
 
       {error && (
         <p
@@ -398,11 +379,23 @@ export default function DynamicGridPage() {
 
       {!loading && rowsWithFooter.length > 0 && (
         <Grid<EmployeeRow>
+          /**
+           * Provides imperative selection API to this page.
+           *
+           * This allows top-level buttons to pull selected data without drilling
+           * callbacks through multiple components.
+           */
           gridRef={gridRef}
           columnDefs={DEMO_COLUMNS}
           rowData={rowsWithFooter}
           stickyFooterRowIndex={stickyFooterRowIndex}
           className={pageStyles.gridViewport}
+          /**
+           * Reactive selection signal from the grid.
+           *
+           * Keeps header CTA state (`hasSelection`) in sync with checkbox changes.
+           * Selection payload includes both `indices` and full `rows`.
+           */
           onSelectionChanged={({ indices }) => {
             setHasSelection(indices.length > 0);
           }}

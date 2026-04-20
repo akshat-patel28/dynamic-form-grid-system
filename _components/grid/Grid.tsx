@@ -219,6 +219,16 @@ const Grid = <TData extends Record<string, unknown> = Record<string, unknown>>({
 
   useImperativeHandle(
     gridRef,
+    /**
+     * Exposes the imperative selection API on `gridRef.current`.
+     *
+     * Consumer-facing methods:
+     * - `getSelectedRows`: returns current `{ rows, indices }` snapshot.
+     * - `clearSelection`: clears checkbox selection state in-grid.
+     *
+     * This is intentionally a small API surface to keep external integration
+     * stable while still supporting toolbar-like actions (delete/export/etc.).
+     */
     () => ({
       getSelectedRows: () => buildSelection(),
       clearSelection,
@@ -227,6 +237,12 @@ const Grid = <TData extends Record<string, unknown> = Record<string, unknown>>({
   );
 
   useEffect(() => {
+    /**
+     * Emits fresh selection snapshot whenever checkbox selection changes.
+     *
+     * Callback is read from ref to avoid unnecessary effect re-runs when parent
+     * re-creates the handler function.
+     */
     onSelectionChangedRef.current?.(buildSelection());
   }, [buildSelection]);
 
