@@ -14,7 +14,7 @@
 
 import type { ChangeEvent, FocusEvent } from "react";
 
-import type { CellInputRenderer } from "@/_components/grid/helpers/constants/cellInputRenderers";
+import type { CellInputRenderer } from "../constants/cellInputRenderers";
 import type { ObjectSchema } from "yup";
 
 /**

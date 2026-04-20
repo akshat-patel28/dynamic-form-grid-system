@@ -20,7 +20,7 @@ import type { ElementType } from "react";
 import {
   CELL_INPUT_RENDERERS,
   type CellInputRenderer,
-} from "@/_components/grid/helpers/constants/cellInputRenderers";
+} from "../constants/cellInputRenderers";
 
 const DynamicTextInput = dynamic(
   () => import("@/_components/inputs/TextInput"),
