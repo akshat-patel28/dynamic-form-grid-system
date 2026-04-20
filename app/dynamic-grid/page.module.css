@@ -1,3 +1,19 @@
 .gridViewport {
   max-height: 600px !important;
 }
+
+.showSelectedButton {
+  padding: 6px 12px;
+  font-size: 0.8125rem;
+  font-weight: 500;
+  color: #ffffff;
+  background-color: #2563eb;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+.showSelectedButtonDisabled {
+  background-color: #94a3b8;
+  cursor: not-allowed;
+}

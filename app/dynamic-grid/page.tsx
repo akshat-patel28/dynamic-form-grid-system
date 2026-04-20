@@ -18,11 +18,12 @@
 
 import dynamic from "next/dynamic";
 import Link from "next/link";
-import { useMemo, useState } from "react";
+import { useMemo, useRef, useState } from "react";
+import { toast } from "react-toastify";
 import pageStyles from "./page.module.css";
 import GridLoader from "./_components/grid-loader/GridLoader";
 import { Grid, CELL_INPUT_RENDERERS } from "@/_components/grid";
-import type { ColumnDef } from "@/_components/grid";
+import type { ColumnDef, GridApi } from "@/_components/grid";
 
 const DataPagination = dynamic(() => import("@/_components/pagination"), {
   ssr: false,
@@ -287,6 +288,17 @@ const DEMO_COLUMNS: ColumnDef<EmployeeRow>[] = [
  */
 export default function DynamicGridPage() {
   const [apiPage, setApiPage] = useState(1);
+  const [hasSelection, setHasSelection] = useState(false);
+  const gridRef = useRef<GridApi<EmployeeRow>>(null);
+
+  const handleShowSelected = () => {
+    const { rows, indices } = gridRef.current?.getSelectedRows() ?? {
+      rows: [],
+      indices: [],
+    };
+    toast.info(`${rows.length} of rows are selected`);
+    console.log("Selected rows:", { indices, rows });
+  };
 
   const endpoint = useMemo(
     () => `${POSTS_API_BASE}?_page=${apiPage}&_limit=${API_PAGE_LIMIT}`,
@@ -332,16 +344,37 @@ export default function DynamicGridPage() {
         ← Back
       </Link>
 
-      <h1
+      <div
         style={{
+          display: "flex",
+          alignItems: "center",
+          gap: "12px",
           marginBottom: "4px",
-          fontSize: "1.25rem",
-          fontWeight: 700,
-          color: "#1e293b",
         }}
       >
-        Dynamic Grid
-      </h1>
+        <h1
+          style={{
+            margin: 0,
+            fontSize: "1.25rem",
+            fontWeight: 700,
+            color: "#1e293b",
+          }}
+        >
+          Dynamic Grid
+        </h1>
+        <button
+          type="button"
+          onClick={handleShowSelected}
+          disabled={!hasSelection}
+          className={
+            hasSelection
+              ? pageStyles.showSelectedButton
+              : `${pageStyles.showSelectedButton} ${pageStyles.showSelectedButtonDisabled}`
+          }
+        >
+          Show selected
+        </button>
+      </div>
 
       {error && (
         <p
@@ -364,11 +397,15 @@ export default function DynamicGridPage() {
       )}
 
       {!loading && rowsWithFooter.length > 0 && (
-        <Grid
+        <Grid<EmployeeRow>
+          gridRef={gridRef}
           columnDefs={DEMO_COLUMNS}
           rowData={rowsWithFooter}
           stickyFooterRowIndex={stickyFooterRowIndex}
           className={pageStyles.gridViewport}
+          onSelectionChanged={({ indices }) => {
+            setHasSelection(indices.length > 0);
+          }}
           onCellValueChanged={({ field, oldValue, newValue }) => {
             console.log(
               `Cell value changed — field: "${field}", old: ${JSON.stringify(oldValue)}, new: ${JSON.stringify(newValue)}`,
