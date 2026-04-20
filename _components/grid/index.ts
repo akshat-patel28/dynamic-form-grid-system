@@ -22,8 +22,10 @@ export type { CellInputRenderer } from "./helpers/constants/cellInputRenderers";
 export type {
   ColumnDef,
   FocusedCell,
+  GridApi,
   GridCellRendererProps,
   GridProps,
+  GridSelection,
   OnCellValueChangedParams,
   ValidateCellValueParams,
 } from "./helpers/types/types";

@@ -8,7 +8,7 @@
  * import type { ColumnDef, GridProps, FocusedCell, GridCellRendererProps, ValidateCellValueParams } from '@/_components/grid';
  */
 
-import type { CSSProperties } from "react";
+import type { CSSProperties, RefObject } from "react";
 import type { CellInputRenderer } from "../constants/cellInputRenderers";
 import type { DropdownOption } from "../../../inputs/DropdownInput";
 
@@ -206,6 +206,59 @@ export interface OnCellValueChangedParams<
 }
 
 /**
+ * Snapshot of the currently checkbox-selected rows returned by
+ * {@link GridApi.getSelectedRows} and passed to
+ * {@link GridProps.onSelectionChanged}.
+ *
+ * `indices` are ascending positions in the grid's current internal `rowData`
+ * (same index space used by `onCellValueChanged`). `rows` are aligned to
+ * `indices` — `rows[k]` corresponds to `indices[k]`.
+ *
+ * Indices are "current positions", not stable IDs. If rows may be removed or
+ * reordered, read a stable identifier off the row object itself
+ * (e.g. `rows[k].id`).
+ *
+ * @template TData Shape of a single row data object.
+ */
+export interface GridSelection<
+  TData extends Record<string, unknown> = Record<string, unknown>,
+> {
+  /** Selected row data objects, in ascending index order. */
+  rows: TData[];
+  /** Ascending row indices in the grid's current `rowData`. */
+  indices: number[];
+}
+
+/**
+ * Imperative handle populated on the `gridRef` prop for on-demand access to
+ * checkbox-selected rows. Use this when an action is triggered outside the
+ * grid (toolbar Delete button, export handler, etc.). For reactive UI (e.g.
+ * enabling a toolbar button based on selection count) prefer
+ * {@link GridProps.onSelectionChanged}.
+ *
+ * Same pattern as AG Grid: the consumer creates a ref with `useRef` and
+ * passes it as a prop, then reads methods off `ref.current`.
+ *
+ * @template TData Shape of a single row data object.
+ *
+ * @example
+ * const gridRef = useRef<GridApi<Employee>>(null);
+ * // ...
+ * <Grid<Employee> gridRef={gridRef} columnDefs={cols} rowData={rows} />
+ * // ...
+ * const { rows, indices } = gridRef.current?.getSelectedRows() ?? { rows: [], indices: [] };
+ * gridRef.current?.clearSelection();
+ */
+export interface GridApi<
+  TData extends Record<string, unknown> = Record<string, unknown>,
+> {
+  /** Returns the current checkbox selection snapshot. */
+  getSelectedRows: () => GridSelection<TData>;
+  /** Deselects every row (clears the underlying selection set). */
+  clearSelection: () => void;
+}
+
+/**
  * Props accepted by the `<Grid />` component.
  *
  * @template TData Shape of a single row data object. Defaults to
@@ -247,6 +300,24 @@ export interface GridProps<
    * the change — typically called when a subsequent API save fails.
    */
   onCellValueChanged?: (params: OnCellValueChangedParams<TData>) => void;
+
+  /**
+   * Imperative API handle. Create it with
+   * `useRef<GridApi<TData>>(null)` on the consumer, pass it as this prop, and
+   * call methods off `gridRef.current` (e.g. inside a Delete button handler).
+   * Mirrors AG Grid's ref-as-prop pattern so the grid component itself stays
+   * a plain generic function (no `forwardRef` wrapper).
+   */
+  gridRef?: RefObject<GridApi<TData> | null>;
+
+  /**
+   * Fires whenever the checkbox selection changes, with the full selection
+   * snapshot (`rows` + `indices`). Use this to drive reactive UI such as
+   * enabling a toolbar button or showing a selected-count badge. For on-demand
+   * reads triggered outside the grid (e.g. a Delete click), use the imperative
+   * {@link GridApi} via `ref` instead.
+   */
+  onSelectionChanged?: (selection: GridSelection<TData>) => void;
 
   /**
    * When set to an integer in `0 .. rowData.length - 1`, that row is omitted from the

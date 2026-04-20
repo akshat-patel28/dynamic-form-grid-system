@@ -6,7 +6,8 @@ import { useCallback, useState } from "react";
  * Instantiated once on `Grid` so `GridBody` and `GridFooter` share the same `Set` of
  * selected indices (footer rows can be selected like any other row).
  *
- * @returns `selectedRows` set, a `toggleRow` function, and an `isSelected` predicate.
+ * @returns `selectedRows` set, a `toggleRow` function, an `isSelected`
+ *   predicate, and a `clearSelection` helper used by `GridApi.clearSelection`.
  */
 export function useRowSelection() {
   const [selectedRows, setSelectedRows] = useState<Set<number>>(new Set());
@@ -25,5 +26,9 @@ export function useRowSelection() {
     [selectedRows],
   );
 
-  return { selectedRows, toggleRow, isSelected } as const;
+  const clearSelection = useCallback(() => {
+    setSelectedRows((prev) => (prev.size === 0 ? prev : new Set()));
+  }, []);
+
+  return { selectedRows, toggleRow, isSelected, clearSelection } as const;
 }
