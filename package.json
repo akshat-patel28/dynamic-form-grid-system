@@ -19,12 +19,14 @@
     "react": "19.2.4",
     "react-dom": "19.2.4",
     "react-toastify": "^11.0.5",
+    "react-window": "^1.8.11",
     "yup": "^1.7.1"
   },
   "devDependencies": {
     "@types/node": "^20",
     "@types/react": "^19",
     "@types/react-dom": "^19",
+    "@types/react-window": "^1.8.8",
     "eslint": "^9",
     "eslint-config-next": "16.2.2",
     "typescript": "^5"
