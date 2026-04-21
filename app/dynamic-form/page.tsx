@@ -26,7 +26,7 @@ import type {
 import { todayDateStringLocal, transformComments } from "@/helpers/utils/utils";
 import FormPageContent from "./_components/form-page-content/FormPageContent";
 import PageLoader from "./_components/page-loader/PageLoader";
-import { CELL_INPUT_RENDERERS } from "@/_components/grid";
+import { CELL_INPUT_RENDERERS } from "@/_components/stepper-form/helpers/constants/cellInputRenderers";
 import type { FormFieldDef } from "@/_components/stepper-form";
 import * as Yup from "yup";
 

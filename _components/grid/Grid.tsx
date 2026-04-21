@@ -1,7 +1,14 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import type { GridProps } from "./helpers/types/types";
+import {
+  useCallback,
+  useEffect,
+  useImperativeHandle,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
+import type { GridProps, GridSelection } from "./helpers/types/types";
 import { useRowSelection } from "./helpers/hooks/useRowSelection";
 import GridHeader from "./grid-header/GridHeader";
 import GridBody from "./grid-body/GridBody";
@@ -62,6 +69,33 @@ function replaceRowField<TData extends Record<string, unknown>>(
  * `useRowSelection` runs here so `GridBody` and `GridFooter` share one selection set
  * for the checkbox column.
  *
+ * ## Selection API
+ * Two complementary ways to consume checkbox selection:
+ *
+ * 1. **Imperative** — create `const gridRef = useRef<GridApi<TData>>(null)`
+ *    on the consumer, pass it as the `gridRef` prop, and call
+ *    `gridRef.current?.getSelectedRows()` / `gridRef.current?.clearSelection()`
+ *    from external UI (toolbar Delete, export, etc.). Same pattern as AG
+ *    Grid — the ref is a plain prop, not a React `forwardRef`.
+ * 2. **Reactive** — pass `onSelectionChanged` to receive the same
+ *    `{ rows, indices }` snapshot whenever selection changes; useful for
+ *    enabling a toolbar button or rendering a selected-count badge.
+ *
+ * Both return `GridSelection<TData>` with ascending `indices` that refer to
+ * the grid's current internal `rowData` (same index space as
+ * `onCellValueChanged`).
+ *
+ * @example
+ * const gridRef = useRef<GridApi<Employee>>(null);
+ * const [count, setCount] = useState(0);
+ *
+ * <Grid<Employee>
+ *   gridRef={gridRef}
+ *   columnDefs={cols}
+ *   rowData={rows}
+ *   onSelectionChanged={(sel) => setCount(sel.indices.length)}
+ * />
+ *
  * ## Usage
  * ```tsx
  * import { Grid } from '@/_components/grid';
@@ -99,14 +133,17 @@ const Grid = <TData extends Record<string, unknown> = Record<string, unknown>>({
   columnDefs,
   rowData,
   onCellValueChanged,
+  onSelectionChanged,
   stickyFooterRowIndex,
   className,
+  gridRef,
 }: GridProps<TData>) => {
   const [internalRowData, setInternalRowData] = useState<TData[]>(() =>
     rowData.map((row) => ({ ...row })),
   );
 
-  const { toggleRow, isSelected } = useRowSelection();
+  const { selectedRows, toggleRow, isSelected, clearSelection } =
+    useRowSelection();
 
   const resolvedFooterIndex =
     stickyFooterRowIndex !== undefined &&
@@ -128,6 +165,7 @@ const Grid = <TData extends Record<string, unknown> = Record<string, unknown>>({
 
   const rowDataRef = useRef(internalRowData);
   const onCellValueChangedRef = useRef(onCellValueChanged);
+  const onSelectionChangedRef = useRef(onSelectionChanged);
 
   useEffect(() => {
     rowDataRef.current = internalRowData;
@@ -135,7 +173,11 @@ const Grid = <TData extends Record<string, unknown> = Record<string, unknown>>({
 
   useEffect(() => {
     onCellValueChangedRef.current = onCellValueChanged;
-  }, [onCellValueChanged]);
+  }, []);
+
+  useEffect(() => {
+    onSelectionChangedRef.current = onSelectionChanged;
+  }, []);
 
   const updateCellValue = useCallback(
     (rowIndex: number, field: string, value: unknown) => {
@@ -164,6 +206,45 @@ const Grid = <TData extends Record<string, unknown> = Record<string, unknown>>({
     },
     [],
   );
+
+  const buildSelection = useCallback((): GridSelection<TData> => {
+    const rows = rowDataRef.current;
+    const indices: number[] = [];
+    selectedRows.forEach((i) => {
+      if (i >= 0 && i < rows.length) indices.push(i);
+    });
+    indices.sort((a, b) => a - b);
+    return { indices, rows: indices.map((i) => rows[i]) };
+  }, [selectedRows]);
+
+  useImperativeHandle(
+    gridRef,
+    /**
+     * Exposes the imperative selection API on `gridRef.current`.
+     *
+     * Consumer-facing methods:
+     * - `getSelectedRows`: returns current `{ rows, indices }` snapshot.
+     * - `clearSelection`: clears checkbox selection state in-grid.
+     *
+     * This is intentionally a small API surface to keep external integration
+     * stable while still supporting toolbar-like actions (delete/export/etc.).
+     */
+    () => ({
+      getSelectedRows: () => buildSelection(),
+      clearSelection,
+    }),
+    [buildSelection, clearSelection],
+  );
+
+  useEffect(() => {
+    /**
+     * Emits fresh selection snapshot whenever checkbox selection changes.
+     *
+     * Callback is read from ref to avoid unnecessary effect re-runs when parent
+     * re-creates the handler function.
+     */
+    onSelectionChangedRef.current?.(buildSelection());
+  }, [buildSelection]);
 
   const rootClassName = [styles.gridContainer, className]
     .filter(Boolean)

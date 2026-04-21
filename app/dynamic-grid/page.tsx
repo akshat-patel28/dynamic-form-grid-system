@@ -17,17 +17,20 @@
 "use client";
 
 import dynamic from "next/dynamic";
-import Link from "next/link";
-import { useMemo, useState } from "react";
+import { useRouter } from "next/navigation";
+import { useContext, useMemo, useRef, useState } from "react";
+import { toast } from "react-toastify";
 import pageStyles from "./page.module.css";
 import GridLoader from "./_components/grid-loader/GridLoader";
+import PageHeader from "./_components/page-header/PageHeader";
+import { DynamicGridContext } from "./_context/DynamicGridContext";
 import { Grid, CELL_INPUT_RENDERERS } from "@/_components/grid";
-import type { ColumnDef } from "@/_components/grid";
+import type { ColumnDef, GridApi } from "@/_components/grid";
+import { PAGE_ROUTE } from "@/helpers/constant/constant";
 
 const DataPagination = dynamic(() => import("@/_components/pagination"), {
   ssr: false,
 });
-import { PAGE_ROUTE } from "@/helpers/constant/constant";
 import { useApi } from "@/helpers/hooks/useApi";
 import { DEMO_ROWS } from "@/helpers/mock/gridDemoData";
 import type { EmployeeRow } from "@/helpers/mock/gridDemoData";
@@ -286,7 +289,59 @@ const DEMO_COLUMNS: ColumnDef<EmployeeRow>[] = [
  * @returns The `/dynamic-grid` page: navigation chrome plus loader, grid, or empty state.
  */
 export default function DynamicGridPage() {
+  /** Current API page passed to `/posts?_page=...&_limit=...`. */
   const [apiPage, setApiPage] = useState(1);
+  /**
+   * Derived from `Grid.onSelectionChanged`.
+   *
+   * Drives top-header CTA enable/disable state so actions are only clickable
+   * when one or more checkbox rows are selected.
+   */
+  const [hasSelection, setHasSelection] = useState(false);
+  /**
+   * Imperative Grid API handle (AG Grid-like ref-as-prop pattern).
+   *
+   * Passed via `<Grid gridRef={gridRef} />` and populated by the grid with:
+   * - `getSelectedRows()`
+   * - `clearSelection()`
+   */
+  const gridRef = useRef<GridApi<EmployeeRow>>(null);
+
+  /**
+   * Route-scoped context for `/dynamic-grid`.
+   *
+   * Used here to persist the current selection snapshot so nested routes
+   * (e.g. `/dynamic-grid/edit`) can read it without prop drilling.
+   */
+  const { setSelectedRows } = useContext(DynamicGridContext);
+
+  /** Next.js client-side router used to navigate to the bulk edit page. */
+  const router = useRouter();
+
+  /**
+   * Header CTA action: reads current checkbox selection on demand and surfaces it.
+   *
+   * Uses the imperative grid API instead of local page state for row payloads so
+   * the page can always fetch the latest in-grid selection snapshot at click time.
+   * Also pushes the selection into the route-scoped context for nested pages.
+   */
+  const handleShowSelected = () => {
+    const { rows } = gridRef.current?.getSelectedRows() ?? { rows: [] };
+    setSelectedRows(rows);
+    toast.info(`${rows.length} of rows are selected`);
+  };
+
+  /**
+   * Header CTA action: persists the current selection into the route-scoped
+   * context and navigates to the bulk edit page so the stepper form can
+   * render one row per step.
+   */
+  const handleEditSelected = () => {
+    const { rows } = gridRef.current?.getSelectedRows() ?? { rows: [] };
+    if (rows.length === 0) return;
+    setSelectedRows(rows);
+    router.push(PAGE_ROUTE.DYNAMIC_GRID_EDIT);
+  };
 
   const endpoint = useMemo(
     () => `${POSTS_API_BASE}?_page=${apiPage}&_limit=${API_PAGE_LIMIT}`,
@@ -321,27 +376,11 @@ export default function DynamicGridPage() {
 
   return (
     <main style={{ padding: "24px" }}>
-      <Link
-        href={PAGE_ROUTE.HOME}
-        style={{
-          display: "inline-block",
-          marginBottom: "16px",
-          fontSize: "0.875rem",
-        }}
-      >
-        ← Back
-      </Link>
-
-      <h1
-        style={{
-          marginBottom: "4px",
-          fontSize: "1.25rem",
-          fontWeight: 700,
-          color: "#1e293b",
-        }}
-      >
-        Dynamic Grid
-      </h1>
+      <PageHeader
+        hasSelection={hasSelection}
+        onShowSelected={handleShowSelected}
+        onEditSelected={handleEditSelected}
+      />
 
       {error && (
         <p
@@ -364,11 +403,27 @@ export default function DynamicGridPage() {
       )}
 
       {!loading && rowsWithFooter.length > 0 && (
-        <Grid
+        <Grid<EmployeeRow>
+          /**
+           * Provides imperative selection API to this page.
+           *
+           * This allows top-level buttons to pull selected data without drilling
+           * callbacks through multiple components.
+           */
+          gridRef={gridRef}
           columnDefs={DEMO_COLUMNS}
           rowData={rowsWithFooter}
           stickyFooterRowIndex={stickyFooterRowIndex}
           className={pageStyles.gridViewport}
+          /**
+           * Reactive selection signal from the grid.
+           *
+           * Keeps header CTA state (`hasSelection`) in sync with checkbox changes.
+           * Selection payload includes both `indices` and full `rows`.
+           */
+          onSelectionChanged={({ indices }) => {
+            setHasSelection(indices.length > 0);
+          }}
           onCellValueChanged={({ field, oldValue, newValue }) => {
             console.log(
               `Cell value changed — field: "${field}", old: ${JSON.stringify(oldValue)}, new: ${JSON.stringify(newValue)}`,

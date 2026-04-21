@@ -14,7 +14,7 @@
 
 import type { ChangeEvent, FocusEvent } from "react";
 
-import type { CellInputRenderer } from "@/_components/grid/helpers/constants/cellInputRenderers";
+import type { CellInputRenderer } from "../constants/cellInputRenderers";
 import type { ObjectSchema } from "yup";
 
 /**
@@ -163,21 +163,39 @@ export interface BuildFieldPropsParams {
  * Top-level props for the default-export stepper form.
  *
  * @remarks
+ * **Two modes:**
+ * - **Stepper (default):** Multi-row editor with pagination, row header, and jump-to controls.
+ *   The submit button lives in `StepperPagination`.
+ * - **Simple form (`hideStepper={true}`):** Single-page form with no stepper UI. Pass a
+ *   one-element `rowData` array and the component renders only the field grid and a submit button.
+ *
  * **Formik:** `rowData[0]` seeds `initialValues`. `enableReinitialize` stays `false` so
  * navigation does not wipe in-progress edits; the ref store owns cross-step state.
  *
- * **Submit:** The submit button lives in `StepperPagination` (`type="submit"`). `onSubmit`
- * receives **all rows** with edits merged from the store.
+ * **Submit:** `onSubmit` receives **all rows** with edits merged from the store. In simple
+ * form mode the array contains a single element.
  *
  * @template TData - Same row type as each element of `rowData` and keys in `fieldDefs`.
  *
- * @example
+ * @example Stepper mode (default)
  * ```tsx
  * <StepperForm
  *   fieldDefs={PERSON_FIELDS}
  *   rowData={people}
  *   validationSchema={personSchema}
  *   onSubmit={(allRows) => console.log(allRows)}
+ * />
+ * ```
+ *
+ * @example Simple single-page form
+ * ```tsx
+ * <StepperForm
+ *   hideStepper
+ *   fieldDefs={PERSON_FIELDS}
+ *   rowData={[person]}
+ *   validationSchema={personSchema}
+ *   submitLabel="Save"
+ *   onSubmit={(values) => console.log(values[0])}
  * />
  * ```
  */
@@ -192,6 +210,8 @@ export interface StepperFormProps<
   /**
    * One object per step. Length equals step count; only `rowData[activeStep]` is shown,
    * but edits for other indices are kept in the internal store until submit or remount.
+   *
+   * When `hideStepper` is `true`, pass a single-element array for a plain form experience.
    */
   rowData: TData[];
 
@@ -207,6 +227,24 @@ export interface StepperFormProps<
    * Argument is the full `rowData` length array with user edits applied per index.
    */
   onSubmit?: (values: TData[]) => void;
+
+  /**
+   * When `true`, hides the stepper UI (row header, pagination toolbar, and jump-to controls)
+   * and renders a standalone submit button below the fields instead.
+   *
+   * Use this to turn the component into a simple single-page form builder.
+   *
+   * @defaultValue `false`
+   */
+  hideStepper?: boolean;
+
+  /**
+   * Label for the submit button. Applied in both stepper mode (forwarded to
+   * `StepperPagination`) and simple form mode (rendered on the standalone button).
+   *
+   * @defaultValue `"Submit"`
+   */
+  submitLabel?: string;
 }
 
 /**
