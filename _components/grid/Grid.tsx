@@ -16,6 +16,18 @@ import GridFooter from "./grid-footer/GridFooter";
 import styles from "./grid.module.css";
 
 /**
+ * Fixed pixel heights for the header, footer, and body rows.
+ *
+ * These mirror the `height` declarations in `grid.module.css` and are used to
+ * size the virtualized body list. If you change any of these values, update
+ * the matching CSS rules (`.headerCell`, `.bodyCell`, `.footerRow .bodyCell`)
+ * so the DOM measurements and react-window's item size stay in sync.
+ */
+const HEADER_H = 47;
+const FOOTER_H = 42;
+const BODY_ROW_H = 42;
+
+/**
  * Returns a shallow-copied row array with one field updated at `rowIndex`.
  * Used by `Grid` so `setInternalRowData` callbacks stay shallow for Sonar nesting limits.
  */
@@ -163,6 +175,35 @@ const Grid = <TData extends Record<string, unknown> = Record<string, unknown>>({
     );
   }, [internalRowData.length, resolvedFooterIndex]);
 
+  const containerRef = useRef<HTMLDivElement | null>(null);
+  const [bodyHeight, setBodyHeight] = useState(0);
+
+  const hasStickyFooter = resolvedFooterIndex !== undefined;
+
+  useEffect(() => {
+    const container = containerRef.current;
+    if (!container) return;
+
+    const footerContribution = hasStickyFooter ? FOOTER_H : 0;
+
+    const updateHeight = () => {
+      const next = Math.max(
+        0,
+        container.clientHeight - HEADER_H - footerContribution,
+      );
+      setBodyHeight((prev) => (prev === next ? prev : next));
+    };
+
+    updateHeight();
+
+    const observer = new ResizeObserver(updateHeight);
+    observer.observe(container);
+
+    return () => {
+      observer.disconnect();
+    };
+  }, [hasStickyFooter]);
+
   const rowDataRef = useRef(internalRowData);
   const onCellValueChangedRef = useRef(onCellValueChanged);
   const onSelectionChangedRef = useRef(onSelectionChanged);
@@ -251,26 +292,30 @@ const Grid = <TData extends Record<string, unknown> = Record<string, unknown>>({
     .join(" ");
 
   return (
-    <div className={rootClassName} role="table">
-      <GridHeader columnDefs={columnDefs} />
-      <GridBody
-        columnDefs={columnDefs}
-        rowData={internalRowData}
-        rowIndices={bodyRowIndices}
-        toggleRow={toggleRow}
-        isSelected={isSelected}
-        onCellValueChange={updateCellValue}
-      />
-      {resolvedFooterIndex === undefined ? null : (
-        <GridFooter
+    <div ref={containerRef} className={rootClassName} role="table">
+      <div className={styles.inner}>
+        <GridHeader columnDefs={columnDefs} />
+        <GridBody
           columnDefs={columnDefs}
           rowData={internalRowData}
-          footerRowIndex={resolvedFooterIndex}
+          rowIndices={bodyRowIndices}
           toggleRow={toggleRow}
           isSelected={isSelected}
           onCellValueChange={updateCellValue}
+          height={bodyHeight}
+          rowHeight={BODY_ROW_H}
         />
-      )}
+        {resolvedFooterIndex === undefined ? null : (
+          <GridFooter
+            columnDefs={columnDefs}
+            rowData={internalRowData}
+            footerRowIndex={resolvedFooterIndex}
+            toggleRow={toggleRow}
+            isSelected={isSelected}
+            onCellValueChange={updateCellValue}
+          />
+        )}
+      </div>
     </div>
   );
 };

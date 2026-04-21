@@ -1,10 +1,33 @@
 .gridContainer {
   width: 100%;
-  max-height: calc(100vh - 160px);
-  overflow: auto;
+  height: calc(100vh - 160px);
+  overflow-x: auto;
+  overflow-y: hidden;
   border: 1px solid #e2e8f0;
   border-radius: 6px;
   font-family: Arial, Helvetica, sans-serif;
+}
+
+/*
+ * Horizontal-scroll inner wrapper. `min-width: max-content` lets the combined
+ * column min-widths drive the horizontal overflow, so header, virtualized
+ * body, and footer all stretch to the same width and scroll together.
+ */
+.inner {
+  display: flex;
+  flex-direction: column;
+  min-width: max-content;
+  height: 100%;
+}
+
+/*
+ * react-window renders absolute-positioned rows inside this element. We
+ * suppress horizontal scroll here because horizontal scroll is owned by
+ * `.gridContainer`; only vertical scrolling happens inside the list.
+ */
+.virtualList {
+  overflow-x: hidden !important;
+  overflow-y: auto !important;
 }
 
 .cell {
@@ -23,9 +46,6 @@
 
 .headerRow {
   display: flex;
-  position: sticky;
-  top: 0;
-  z-index: 1;
   background: #f8fafc;
 }
 
@@ -46,19 +66,16 @@
   display: flex;
 }
 
-.bodyRow:nth-child(even) .bodyCell {
+/*
+ * Striping is driven by absolute `rowIndex` (applied in `GridBody` via
+ * `rowIndex % 2 === 1`) because virtualized rows always start at DOM index 0
+ * and `:nth-child(even)` would paint the wrong rows.
+ */
+.bodyRowAlt .bodyCell {
   background: #f8fafc;
 }
 
-.bodyRow:last-child .bodyCell {
-  border-bottom: none;
-}
-
-/* When a sticky footer follows, the last body row is not :last-child; footer row clears bottom cell borders. */
 .footerStack {
-  position: sticky;
-  bottom: 0;
-  z-index: 2;
   background: #f8fafc;
   box-shadow: 0 -1px 0 #e2e8f0;
 }
